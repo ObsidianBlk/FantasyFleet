@@ -1,0 +1,38 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Object",
+"class": "VectorHex",
+"language": "GDScript",
+"path": "res://Scripts/VectorHex.gd"
+} ]
+_global_script_class_icons={
+"VectorHex": ""
+}
+
+[application]
+
+config/name="Fantasy Fleet"
+run/main_scene="res://Scenes/World.tscn"
+config/icon="res://icon.png"
+
+[display]
+
+window/size/width=1920
+window/size/height=1080
+
+[physics]
+
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"

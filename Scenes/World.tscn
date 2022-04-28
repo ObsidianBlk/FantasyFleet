@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Shaders/GameScreen.gdshader" type="Shader" id=1]
+
+[sub_resource type="ViewportTexture" id=2]
+viewport_path = NodePath("Viewport2D")
+
+[sub_resource type="ViewportTexture" id=3]
+viewport_path = NodePath("Viewport3D")
+
+[sub_resource type="ShaderMaterial" id=1]
+resource_local_to_scene = true
+shader = ExtResource( 1 )
+shader_param/view2d_active = false
+shader_param/view3d = SubResource( 3 )
+shader_param/view2d = SubResource( 2 )
+
+[node name="World" type="Node2D"]
+
+[node name="Viewport3D" type="Viewport" parent="."]
+size = Vector2( 1920, 1080 )
+handle_input_locally = false
+
+[node name="Viewport2D" type="Viewport" parent="."]
+size = Vector2( 1920, 1080 )
+
+[node name="Canvas" type="CanvasLayer" parent="."]
+
+[node name="GameScreen" type="ColorRect" parent="Canvas"]
+material = SubResource( 1 )
+anchor_right = 1.0
+anchor_bottom = 1.0
