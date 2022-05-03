@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Shaders/GameScreen.gdshader" type="Shader" id=1]
+[ext_resource path="res://Scenes/World.gd" type="Script" id=2]
 
 [sub_resource type="ViewportTexture" id=2]
 viewport_path = NodePath("Viewport2D")
@@ -16,6 +17,7 @@ shader_param/view3d = SubResource( 3 )
 shader_param/view2d = SubResource( 2 )
 
 [node name="World" type="Node2D"]
+script = ExtResource( 2 )
 
 [node name="Viewport3D" type="Viewport" parent="."]
 size = Vector2( 1920, 1080 )

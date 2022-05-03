@@ -1,4 +1,5 @@
 extends Object
+tool
 class_name VectorHex
 
 # Based on information at...
@@ -8,6 +9,14 @@ class_name VectorHex
 # Constants and ENUMs
 # -------------------------------------------------------------------------
 const SQRT3 : float = sqrt(3)
+const NEIGHBOR_OFFSET : Array = [
+	Vector3(0, -1, 1),
+	Vector3(-1, 0, 1),
+	Vector3(-1, 1, 0),
+	Vector3(0, 1, -1),
+	Vector3(1, 0, -1),
+	Vector3(1, -1, 0)
+]
 
 enum ORIENTATION {Pointy=0, Flat=1}
 
@@ -20,6 +29,16 @@ var c : Vector3 = Vector3.ZERO
 # -------------------------------------------------------------------------
 # Override Methods
 # -------------------------------------------------------------------------
+func _init(value = null, point_is_spacial : bool = false) -> void:
+	if typeof(value) == TYPE_OBJECT and value.has_method("is_valid") and value.is_valid():
+		c = value.qrs
+	elif typeof(value) == TYPE_VECTOR3:
+		c = value
+	elif typeof(value) == TYPE_VECTOR2:
+		if point_is_spacial:
+			from_point(value)
+		else:
+			c = Vector3(value.x, -value.x -value.y, value.y)
 
 func _get(property : String):
 	match property:
@@ -52,18 +71,18 @@ func _set(property : String, value) -> bool:
 				c.y = value
 			else : success = false
 		"qrs":
-			if value is VectorHex:
+			if typeof(value) == TYPE_VECTOR3:
+				c = value
+			elif typeof(value) == TYPE_OBJECT and value.has_method("round_hex"):
 				c.x = value.q
 				c.z = value.r
 				c.y = value.s
-			elif typeof(value) == TYPE_VECTOR3:
-				c = value
 			else:
 				success = false
 		"qr":
 			if typeof(value) == TYPE_VECTOR2:
 				c.x = value.x
-				c.z = value.z
+				c.z = value.y
 				c.y = (-c.x)-c.z
 	
 	if success:
@@ -94,16 +113,34 @@ func _get_property_list() -> Array:
 # -------------------------------------------------------------------------
 # Private Methods
 # -------------------------------------------------------------------------
-func _ShiftedVectorHex(v : Vector3) -> VectorHex:
-	var vh : VectorHex = VectorHex.new()
-	vh.qrs = c + v
-	return vh
+
 
 # -------------------------------------------------------------------------
 # Public Methods
 # -------------------------------------------------------------------------
 func is_valid() -> bool:
 	return c.x + c.y + c.z == 0
+
+func round_hex() -> void:
+	var q = floor(c.x)
+	var r = floor(c.z)
+	var s = floor(c.y)
+	
+	var dq = c.x - q
+	var dr = c.z - r
+	var ds = c.y - s
+	
+	if dq > dr and dq > ds:
+		q = -r -s
+	elif dr > ds:
+		r = -q -s
+	else:
+		s = -r -s
+	
+	c.x = q
+	c.z = r
+	c.y = s
+
 
 func distance_to(vh : VectorHex) -> float:
 	if is_valid() and vh != null and vh.is_valid():
@@ -138,23 +175,13 @@ func from_point(point : Vector2, orientation : int = ORIENTATION.Pointy) -> void
 			fq = (2/3) * point.x
 			fr = ((-1/3) * point.x) + ((SQRT3/3) * point.y)
 	var fs : float = -fq -fr
-	
-	var q = floor(fq)
-	var r = floor(fr)
-	var s = floor(fs)
-	
-	var dq = fq - q
-	var dr = fr - r
-	var ds = fs - s
-	
-	if dq > dr and dq > ds:
-		q = -r -s
-	elif dr > ds:
-		r = -q -s
-	else:
-		s = -r -s
-	
-	c.x = q
-	c.z = r
-	c.y = s
+	c = Vector3(fq, fs, fr)
+	round_hex()
 
+func get_neighbor(dir : int, amount : int = 1) -> VectorHex:
+	if is_valid() and amount > 0:
+		if dir >= 0 and dir < NEIGHBOR_OFFSET.size():
+			var vh : VectorHex = get_script().new(c + (NEIGHBOR_OFFSET[dir] * float(amount)))
+			return vh
+	return null
+	

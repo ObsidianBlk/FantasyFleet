@@ -9,12 +9,24 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Resource",
+"class": "Entity",
+"language": "GDScript",
+"path": "res://Entity.gd"
+}, {
+"base": "Resource",
+"class": "HexMapData",
+"language": "GDScript",
+"path": "res://Scripts/HexMapData.gd"
+}, {
 "base": "Object",
 "class": "VectorHex",
 "language": "GDScript",
 "path": "res://Scripts/VectorHex.gd"
 } ]
 _global_script_class_icons={
+"Entity": "",
+"HexMapData": "",
 "VectorHex": ""
 }
 
