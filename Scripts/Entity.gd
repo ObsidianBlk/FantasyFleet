@@ -16,23 +16,29 @@ signal move(dir, amount)
 # -------------------------------------------------------------------------
 # Variables
 # -------------------------------------------------------------------------
-var _position : Vector3 = Vector3.ZERO
+var _uuid : String = ""
+var _hex : HexCell = HexCell.new()
+var _blocking_view : bool = false
+var _blocking_cell : bool = false
 
 var _deferred_emit_list : Dictionary = {}
 var _deferred_emit : bool = false
-
-# -------------------------------------------------------------------------
-# Onready Variables
-# -------------------------------------------------------------------------
-
 
 # -------------------------------------------------------------------------
 # Override Methods
 # -------------------------------------------------------------------------
 func _get(property : String):
 	match property:
-		"position":
-			return _position
+		"uuid":
+			return _uuid
+		"hex":
+			return _hex
+		"qrs":
+			return _hex.qrs
+		"blocking_view":
+			return _blocking_view
+		"blocking_cell":
+			return _blocking_cell
 	
 	return null
 
@@ -41,24 +47,39 @@ func _set(property : String, value) -> bool:
 	var success : bool = true
 	
 	match property:
-		"position":
-			if value is VectorHex:
+		"uuid":
+			if typeof(value) == TYPE_STRING and _uuid == "":
+				_uuid = value
+			else : success = false
+		"hex":
+			if value is HexCell:
 				if value.is_valid():
-					_position = value.qrs
-					_DeferredEmit("position_changed")
+					_hex.qrs = value.qrs
+					Utils.call_deferred_once("emit_signal", self, ["position_changed"])
 				else : success = false
 			elif typeof(value) == TYPE_VECTOR3:
-				var vh : VectorHex = VectorHex.new(value)
-				if vh.is_valid():
-					_position = vh.qrs
-					_DeferredEmit("position_changed")
-				else : success = false
+				_hex.qrs = value
+				if not _hex.is_valid():
+					_hex.round_hex()
+				Utils.call_deferred_once("emit_signal", self, ["position_changed"])
 			elif typeof(value) == TYPE_VECTOR2:
-				var vh : VectorHex = VectorHex.new(value, true)
-				_position = vh.qrs
-				_DeferredEmit("position_changed")
-			else:
-				success = false
+				_hex.qr = value
+				Utils.call_deferred_once("emit_signal", self, ["position_changed"])
+			else : success = false
+		"qrs":
+			if typeof(value) == TYPE_VECTOR3:
+				_hex.qrs = value
+				if not _hex.is_valid():
+					_hex.round_hex()
+				Utils.call_deferred_once("emit_signal", self, ["position_changed"])
+		"blocking_view":
+			if typeof(value) == TYPE_BOOL:
+				_blocking_view = value
+			else : success = false
+		"blocking_cell":
+			if typeof(value) == TYPE_BOOL:
+				_blocking_cell = value
+			else : success = false
 		_:
 			success = false
 	
@@ -70,27 +91,36 @@ func _set(property : String, value) -> bool:
 func _get_property_list() -> Array:
 	var props : Array = [
 		{
-			name="position",
-			type=TYPE_VECTOR3,
-			usage=PROPERTY_USAGE_DEFAULT
-		}
+			name = "uuid",
+			type = TYPE_STRING,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "hex",
+			type = TYPE_OBJECT,
+			usage = PROPERTY_USAGE_NO_INSTANCE_STATE
+		},
+		{
+			name = "qrs",
+			type = TYPE_VECTOR3,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "blocking_view",
+			type = TYPE_BOOL,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "blocking_cell",
+			type = TYPE_BOOL,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
 	]
 	return props
 
 # -------------------------------------------------------------------------
 # Private Methods
 # -------------------------------------------------------------------------
-func _DeferredEmit(signal_name : String, args : Array = [null]) -> void:
-	if not signal_name in _deferred_emit_list:
-		_deferred_emit_list[signal_name] = args
-	if not _deferred_emit:
-		_deferred_emit = true
-		call_deferred("_FinishDeferredEmit")
-
-func _FinishedDeferredEmit() -> void:
-	_deferred_emit = false
-	for sig_name in _deferred_emit_list.keys():
-		callv("emit_signal", _deferred_emit_list[sig_name])
 
 # -------------------------------------------------------------------------
 # Public Methods

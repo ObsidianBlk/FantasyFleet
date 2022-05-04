@@ -12,22 +12,22 @@ _global_script_classes=[ {
 "base": "Resource",
 "class": "Entity",
 "language": "GDScript",
-"path": "res://Entity.gd"
+"path": "res://Scripts/Entity.gd"
+}, {
+"base": "Object",
+"class": "HexCell",
+"language": "GDScript",
+"path": "res://Scripts/HexCell.gd"
 }, {
 "base": "Resource",
 "class": "HexMapData",
 "language": "GDScript",
 "path": "res://Scripts/HexMapData.gd"
-}, {
-"base": "Object",
-"class": "VectorHex",
-"language": "GDScript",
-"path": "res://Scripts/VectorHex.gd"
 } ]
 _global_script_class_icons={
 "Entity": "",
-"HexMapData": "",
-"VectorHex": ""
+"HexCell": "",
+"HexMapData": ""
 }
 
 [application]
@@ -35,6 +35,10 @@ _global_script_class_icons={
 config/name="Fantasy Fleet"
 run/main_scene="res://Scenes/World.tscn"
 config/icon="res://icon.png"
+
+[autoload]
+
+Utils="*res://Scripts/Auto/Utils.gd"
 
 [display]
 
