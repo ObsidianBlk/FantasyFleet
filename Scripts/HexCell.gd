@@ -156,7 +156,7 @@ func clone() -> HexCell:
 
 func eq(v, point_is_spacial : bool = false) -> bool:
 	if typeof(v) == TYPE_OBJECT and v.has_method("is_valid"):
-		return v == v.qrs
+		return c == v.qrs
 	elif typeof(v) == TYPE_VECTOR3:
 		return c == v
 	elif typeof(v) == TYPE_VECTOR2:
@@ -199,11 +199,15 @@ func to_point() -> Vector2:
 	if is_valid():
 		match _orientation:
 			ORIENTATION.Pointy:
-				x = (SQRT3 * c.x) + ((SQRT3/2.0) * c.z)
-				y = (2/3) * c.z
+				#var x = size * (sqrt(3) * hex.q  +  sqrt(3)/2 * hex.r)
+				#var y = size * (                         3./2 * hex.r)
+				x = (SQRT3 * c.x) + ((SQRT3 * 0.5) * c.z)
+				y = 1.5 * c.z
 			ORIENTATION.Flat:
-				x = (2/3) * c.x
-				y = ((SQRT3/2) * c.x) + (SQRT3 * c.z)
+				#var x = size * (     3./2 * hex.q                    )
+				#var y = size * (sqrt(3)/2 * hex.q  +  sqrt(3) * hex.r)
+				x = 1.5 * c.x
+				y = ((SQRT3 * 0.5) * c.x) + (SQRT3 * c.z)
 	return Vector2(x,y)
 
 func from_point(point : Vector2) -> void:

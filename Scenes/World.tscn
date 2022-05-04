@@ -1,7 +1,16 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Shaders/GameScreen.gdshader" type="Shader" id=1]
 [ext_resource path="res://Scenes/World.gd" type="Script" id=2]
+[ext_resource path="res://Scripts/HexMapData.gd" type="Script" id=3]
+[ext_resource path="res://Objects/HexMap2D/HexMap2D.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Objects/HexMap3D/HexMap3D.tscn" type="PackedScene" id=5]
+
+[sub_resource type="Resource" id=5]
+script = ExtResource( 3 )
+
+[sub_resource type="Resource" id=4]
+script = ExtResource( 3 )
 
 [sub_resource type="ViewportTexture" id=2]
 viewport_path = NodePath("Viewport2D")
@@ -22,9 +31,27 @@ script = ExtResource( 2 )
 [node name="Viewport3D" type="Viewport" parent="."]
 size = Vector2( 1920, 1080 )
 handle_input_locally = false
+render_target_v_flip = true
+render_target_update_mode = 3
+
+[node name="HexMap3D" parent="Viewport3D" instance=ExtResource( 5 )]
+map_data = SubResource( 5 )
+
+[node name="Camera" type="Camera" parent="Viewport3D"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.53563, 10 )
 
 [node name="Viewport2D" type="Viewport" parent="."]
 size = Vector2( 1920, 1080 )
+disable_3d = true
+usage = 0
+render_target_v_flip = true
+render_target_update_mode = 3
+
+[node name="HexMap2D" parent="Viewport2D" instance=ExtResource( 4 )]
+map_data = SubResource( 4 )
+
+[node name="Camera2D" type="Camera2D" parent="Viewport2D"]
+current = true
 
 [node name="Canvas" type="CanvasLayer" parent="."]
 
@@ -32,3 +59,5 @@ size = Vector2( 1920, 1080 )
 material = SubResource( 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
+
+[connection signal="resized" from="Canvas/GameScreen" to="." method="_on_GameScreen_resized"]

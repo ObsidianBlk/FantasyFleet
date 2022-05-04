@@ -21,9 +21,6 @@ var _hex : HexCell = HexCell.new()
 var _blocking_view : bool = false
 var _blocking_cell : bool = false
 
-var _deferred_emit_list : Dictionary = {}
-var _deferred_emit : bool = false
-
 # -------------------------------------------------------------------------
 # Override Methods
 # -------------------------------------------------------------------------
