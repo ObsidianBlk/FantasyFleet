@@ -218,11 +218,11 @@ func from_point(point : Vector2) -> void:
 	var fr : float = 0.0
 	match _orientation:
 		ORIENTATION.Pointy:
-			fq = ((SQRT3/3) * point.x) - ((1/3) * point.y)
-			fr = (2/3) * point.y
+			fq = ((SQRT3/3.0) * point.x) - ((1.0/3.0) * point.y)
+			fr = (2.0/3.0) * point.y
 		ORIENTATION.Flat:
-			fq = (2/3) * point.x
-			fr = ((-1/3) * point.x) + ((SQRT3/3) * point.y)
+			fq = (2.0/3.0) * point.x
+			fr = ((-1.0/3.0) * point.x) + ((SQRT3/3.0) * point.y)
 	var fs : float = -fq -fr
 	c = Vector3(fq, fs, fr)
 	round_hex()

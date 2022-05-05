@@ -46,13 +46,11 @@ func _BuildHex(st : SurfaceTool, pos : Vector2, size : float, orientation : int)
 	var point : Vector2 = Vector2(0, -size) if orientation == 0 else Vector2(-size, 0)
 	var offset : Vector2 = pos * size
 	
-	print("Adding Vertex: ", point + offset)
 	st.add_color(Color(0, 1, 0))
 	st.add_vertex(Vector3(point.x + offset.x, 0, point.y + offset.y))
 	for i in range(1, 6):
 		var rad = deg2rad(60 * i)
 		var p = point.rotated(rad) + offset
-		print("Adding Vertex: ", p)
 		st.add_color(Color(0, 1, 0))
 		st.add_vertex(Vector3(p.x, 0, p.y))
 	if _meshinst_node.mesh == null:
