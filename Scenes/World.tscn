@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://Shaders/GameScreen.gdshader" type="Shader" id=1]
 [ext_resource path="res://Scenes/World.gd" type="Script" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://Objects/HexMap2D/HexMap2D.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Objects/HexMap3D/HexMap3D.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scripts/Controllers/CameraCTRL.gd" type="Script" id=6]
+[ext_resource path="res://Objects/OrbitCamera/OrbitCamera.tscn" type="PackedScene" id=7]
 
 [sub_resource type="Resource" id=5]
 script = ExtResource( 3 )
@@ -31,6 +32,8 @@ script = ExtResource( 2 )
 
 [node name="CameraCTRL" type="Node" parent="."]
 script = ExtResource( 6 )
+camera3d_path = NodePath("../Viewport3D/OrbitCamera")
+camera2d_path = NodePath("../Viewport2D/Camera2D")
 
 [node name="Viewport3D" type="Viewport" parent="."]
 size = Vector2( 1920, 1080 )
@@ -41,9 +44,11 @@ render_target_update_mode = 3
 [node name="HexMap3D" parent="Viewport3D" instance=ExtResource( 5 )]
 map_data = SubResource( 5 )
 
-[node name="Camera" type="Camera" parent="Viewport3D"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.53563, 10 )
+[node name="OrbitCamera" parent="Viewport3D" instance=ExtResource( 7 )]
 current = true
+far = 4000.0
+sensitivity = Vector2( 0.02, 0.02 )
+partner_camera2d_path = NodePath("../../Viewport2D/Camera2D")
 
 [node name="Viewport2D" type="Viewport" parent="."]
 size = Vector2( 1920, 1080 )
@@ -65,5 +70,6 @@ current = true
 material = SubResource( 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
 
 [connection signal="resized" from="Canvas/GameScreen" to="." method="_on_GameScreen_resized"]
