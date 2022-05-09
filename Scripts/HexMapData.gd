@@ -1,31 +1,35 @@
 extends Resource
 class_name HexMapData
 
+
 # -------------------------------------------------------------------------
-# Constants
+# Signals
 # -------------------------------------------------------------------------
-const HEX_POINTS : Array = [
-	Vector2(0, -.5),
-	Vector2(-.5, -(1.0/3.0)),
-	Vector2(-.5, (1.0/3.0)),
-	Vector2(0, .5),
-	Vector2(.5, (1.0/3.0)),
-	Vector2(.5, -(1.0/3.0))
-]
+signal entity_added(uuid)
+signal entity_removed(uuid)
 
 # -------------------------------------------------------------------------
 # Variables
 # -------------------------------------------------------------------------
 var _cells : Dictionary = {}
 var _entities : Dictionary = {}
+var _color_normal : Color = Color(0,1,0)
+var _color_highlight : Color = Color(1,0,0)
+var _color_focus : Color = Color(0,0,1)
 
 # -------------------------------------------------------------------------
 # Override Methods
 # -------------------------------------------------------------------------
 func _get(property : String):
 	match property:
-		_:
-			pass
+		"entities":
+			return _entities.values()
+		"color_normal":
+			return _color_normal
+		"color_focus":
+			return _color_focus
+		"color_highlight":
+			return _color_highlight
 	
 	return null
 
@@ -34,6 +38,26 @@ func _set(property : String, value) -> bool:
 	var success : bool = true
 	
 	match property:
+		"entities":
+			if typeof(value) == TYPE_ARRAY:
+				if _entities.empty():
+					for e in value:
+						if e is Entity:
+							add_entity(e)
+				else : success = false
+			else : success = false
+		"color_normal":
+			if typeof(value) == TYPE_COLOR:
+				_color_normal = value
+			else : success = false
+		"color_focus":
+			if typeof(value) == TYPE_COLOR:
+				_color_focus = value
+			else : success = false
+		"color_highlight":
+			if typeof(value) == TYPE_COLOR:
+				_color_highlight = value
+			else : success = false
 		_:
 			success = false
 	
@@ -43,8 +67,31 @@ func _set(property : String, value) -> bool:
 
 
 func _get_property_list() -> Array:
+	# NOTE: Hinting for "entities" is based on information found...
+	# https://stackoverflow.com/questions/71175503/how-to-add-array-with-hint-and-hint-string
 	var props : Array = [
-		
+		{
+			name = "entities",
+			type = TYPE_ARRAY,
+			hint = 24,
+			hint_string = str(TYPE_OBJECT) + "/" + str(PROPERTY_HINT_RESOURCE_TYPE) + ":Entity",
+			usage = PROPERTY_USAGE_STORAGE
+		},
+		{
+			name = "color_normal",
+			type = TYPE_COLOR,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "color_focus",
+			type = TYPE_COLOR,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "color_highlight",
+			type = TYPE_COLOR,
+			usage = PROPERTY_USAGE_DEFAULT
+		}
 	]
 	return props
 
@@ -85,12 +132,17 @@ func _AddEntityToCell(e : Entity) -> void:
 # -------------------------------------------------------------------------
 # Public Methods
 # -------------------------------------------------------------------------
+func initialize() -> void:
+	for e in _entities.values():
+		emit_signal("entity_added", e)
+
 func add_entity(e : Entity) -> void:
 	if e.uuid != "" and e.hex.is_valid():
 		if not e.uuid in _entities:
 			_entities[e.uuid] = e
 			_AddEntityToCell(e)
 			_ListenToEntity(e)
+			emit_signal("entity_added", e)
 
 func remove_entity(e : Entity) -> void:
 	if e.uuid != "":
@@ -99,6 +151,7 @@ func remove_entity(e : Entity) -> void:
 		if e.uuid in _entities:
 			_UnlistenToEntity(e)
 			_entities.erase(e.uuid)
+			emit_signal("entity_removed", e)
 
 func has_entity(e : Entity) -> bool:
 	return e.uuid in _entities

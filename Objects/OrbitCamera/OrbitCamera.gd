@@ -184,3 +184,14 @@ func zoom_in() -> void:
 
 func zoom_out() -> void:
 	zoom(zoom_step)
+
+func project_ray_origin(pos : Vector2) -> Vector3:
+	if _camera_node:
+		return _camera_node.project_ray_origin(pos)
+	return Vector3.ZERO
+
+func project_ray_normal(pos : Vector2) -> Vector3:
+	if _camera_node:
+		return _camera_node.project_ray_normal(pos)
+	return Vector3.ZERO
+
