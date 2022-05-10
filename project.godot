@@ -39,6 +39,7 @@ config/icon="res://icon.png"
 [autoload]
 
 Utils="*res://Scripts/Auto/Utils.gd"
+HexMap="*res://Scripts/Auto/HexMap.gd"
 
 [display]
 

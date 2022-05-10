@@ -167,20 +167,20 @@ func eq(v, point_is_spacial : bool = false) -> bool:
 	return false
 
 func round_hex() -> void:
-	var q = floor(c.x)
-	var r = floor(c.z)
-	var s = floor(c.y)
+	var q = round(c.x)
+	var r = round(c.z)
+	var s = round(c.y)
 	
-	var dq = c.x - q
-	var dr = c.z - r
-	var ds = c.y - s
+	var dq = abs(c.x - q)
+	var dr = abs(c.z - r)
+	var ds = abs(c.y - s)
 	
 	if dq > dr and dq > ds:
 		q = -r -s
 	elif dr > ds:
 		r = -q -s
 	else:
-		s = -r -s
+		s = -q -r
 	
 	c.x = q
 	c.z = r
@@ -211,9 +211,6 @@ func to_point() -> Vector2:
 	return Vector2(x,y)
 
 func from_point(point : Vector2) -> void:
-	if not is_valid():
-		return
-	
 	var fq : float = 0.0
 	var fr : float = 0.0
 	match _orientation:
@@ -226,6 +223,8 @@ func from_point(point : Vector2) -> void:
 	var fs : float = -fq -fr
 	c = Vector3(fq, fs, fr)
 	round_hex()
+
+
 
 func get_neighbor(dir : int, amount : int = 1) -> HexCell:
 	if is_valid() and amount > 0:

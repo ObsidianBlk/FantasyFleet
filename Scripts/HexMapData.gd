@@ -13,6 +13,7 @@ signal entity_removed(uuid)
 # -------------------------------------------------------------------------
 var _cells : Dictionary = {}
 var _entities : Dictionary = {}
+var _cell_size : float = 1.0
 var _color_normal : Color = Color(0,1,0)
 var _color_highlight : Color = Color(1,0,0)
 var _color_focus : Color = Color(0,0,1)
@@ -24,6 +25,8 @@ func _get(property : String):
 	match property:
 		"entities":
 			return _entities.values()
+		"cell_size":
+			return _cell_size
 		"color_normal":
 			return _color_normal
 		"color_focus":
@@ -44,6 +47,12 @@ func _set(property : String, value) -> bool:
 					for e in value:
 						if e is Entity:
 							add_entity(e)
+				else : success = false
+			else : success = false
+		"cell_size":
+			if typeof(value) == TYPE_REAL:
+				if value > 0.0:
+					_cell_size = value
 				else : success = false
 			else : success = false
 		"color_normal":
@@ -76,6 +85,11 @@ func _get_property_list() -> Array:
 			hint = 24,
 			hint_string = str(TYPE_OBJECT) + "/" + str(PROPERTY_HINT_RESOURCE_TYPE) + ":Entity",
 			usage = PROPERTY_USAGE_STORAGE
+		},
+		{
+			name = "cell_size",
+			type = TYPE_REAL,
+			usage = PROPERTY_USAGE_DEFAULT
 		},
 		{
 			name = "color_normal",

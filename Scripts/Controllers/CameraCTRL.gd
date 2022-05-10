@@ -15,6 +15,7 @@ export var camera2d_path : NodePath = ""		setget set_camera2d_path
 var _camera3d_node : Spatial = null
 var _camera2d_node : Camera2D = null
 
+
 var _axis_strength : Vector2 = Vector2.ZERO
 var _mod_key : Array = [false, false]
 
@@ -39,7 +40,6 @@ func set_camera2d_path(p : NodePath) -> void:
 		if cn and cn is Camera2D:
 			_camera2d_node = cn
 
-
 # -----------------------------------------------------------------------------
 # Override Methods
 # -----------------------------------------------------------------------------
@@ -56,6 +56,7 @@ func _unhandled_input(event) -> void:
 			_camera3d_node.move_ground(-event.relative)
 		elif _mod_key[1]:
 			_camera3d_node.orbit(event.relative.x, event.relative.y)
+		HexMap.bounce_input(event)
 	elif event is InputEventJoypadMotion:
 		pass
 	elif event is InputEventMouseButton:

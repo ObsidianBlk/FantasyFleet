@@ -3,6 +3,7 @@ extends Spatial
 # -----------------------------------------------------------------------------
 # Export Variables
 # -----------------------------------------------------------------------------
+export var group_name : String = ""
 export var current : bool = false									setget set_current
 export (int, LAYERS_3D_PHYSICS) var collision_mask : int = 1		setget set_collision_mask
 export (float, 1.0, 180.0, 0.1) var fov : float = 60.0				setget set_fov
@@ -39,10 +40,20 @@ onready var _arm_node : Spatial = $Arm
 # -----------------------------------------------------------------------------
 # Setters / Getters
 # -----------------------------------------------------------------------------
+func set_group_name(gn : String) -> void:
+	if group_name != "" and current:
+		remove_from_group(group_name)
+	group_name = gn
+	if group_name != "" and current:
+		add_to_group(group_name)
+
+
 func set_current(c : bool) -> void:
 	current = c
 	if _camera_node:
 		_camera_node.current = c
+		if group_name != null and current:
+			add_to_group(group_name)
 
 
 func set_collision_mask(m : int) -> void:
@@ -108,6 +119,7 @@ func set_smooth_tracking(st : bool) -> void:
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
+	set_group_name(group_name)
 	set_current(current)
 	set_collision_mask(collision_mask)
 	set_fov(fov)

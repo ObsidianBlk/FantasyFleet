@@ -1,18 +1,11 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Shaders/GameScreen.gdshader" type="Shader" id=1]
 [ext_resource path="res://Scenes/World.gd" type="Script" id=2]
-[ext_resource path="res://Scripts/HexMapData.gd" type="Script" id=3]
 [ext_resource path="res://Objects/HexMap2D/HexMap2D.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Objects/HexMap3D/HexMap3D.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scripts/Controllers/CameraCTRL.gd" type="Script" id=6]
 [ext_resource path="res://Objects/OrbitCamera/OrbitCamera.tscn" type="PackedScene" id=7]
-
-[sub_resource type="Resource" id=5]
-script = ExtResource( 3 )
-
-[sub_resource type="Resource" id=4]
-script = ExtResource( 3 )
 
 [sub_resource type="ViewportTexture" id=2]
 viewport_path = NodePath("Viewport2D")
@@ -23,7 +16,7 @@ viewport_path = NodePath("Viewport3D")
 [sub_resource type="ShaderMaterial" id=1]
 resource_local_to_scene = true
 shader = ExtResource( 1 )
-shader_param/view2d_active = false
+shader_param/view2d_active = true
 shader_param/view3d = SubResource( 3 )
 shader_param/view2d = SubResource( 2 )
 
@@ -37,14 +30,14 @@ camera2d_path = NodePath("../Viewport2D/Camera2D")
 
 [node name="Viewport3D" type="Viewport" parent="."]
 size = Vector2( 1920, 1080 )
-handle_input_locally = false
 render_target_v_flip = true
 render_target_update_mode = 3
 
 [node name="HexMap3D" parent="Viewport3D" instance=ExtResource( 5 )]
-map_data = SubResource( 5 )
+active_camera_group = "active_3d_camera"
 
 [node name="OrbitCamera" parent="Viewport3D" instance=ExtResource( 7 )]
+group_name = "active_3d_camera"
 current = true
 far = 4000.0
 sensitivity = Vector2( 0.02, 0.02 )
@@ -59,7 +52,6 @@ render_target_v_flip = true
 render_target_update_mode = 3
 
 [node name="HexMap2D" parent="Viewport2D" instance=ExtResource( 4 )]
-map_data = SubResource( 4 )
 
 [node name="Camera2D" type="Camera2D" parent="Viewport2D"]
 current = true
