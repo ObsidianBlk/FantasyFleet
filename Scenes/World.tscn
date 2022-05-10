@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://Shaders/GameScreen.gdshader" type="Shader" id=1]
 [ext_resource path="res://Scenes/World.gd" type="Script" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://Objects/HexMap3D/HexMap3D.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scripts/Controllers/CameraCTRL.gd" type="Script" id=6]
 [ext_resource path="res://Objects/OrbitCamera/OrbitCamera.tscn" type="PackedScene" id=7]
+[ext_resource path="res://Scripts/Controllers/GameScreen.gd" type="Script" id=8]
 
 [sub_resource type="ViewportTexture" id=2]
 viewport_path = NodePath("Viewport2D")
@@ -66,5 +67,6 @@ material = SubResource( 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+script = ExtResource( 8 )
 
 [connection signal="resized" from="Canvas/GameScreen" to="." method="_on_GameScreen_resized"]

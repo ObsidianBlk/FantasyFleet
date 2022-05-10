@@ -160,9 +160,9 @@ func move(delta_pos : Vector3) -> void:
 
 func move_ground(delta_pos : Vector2) -> void:
 	var dp : Vector3 = Vector3(
-		delta_pos.x * sensitivity.x,
+		delta_pos.x,
 		0.0,
-		delta_pos.y * sensitivity.y
+		delta_pos.y
 	).rotated(Vector3.UP, rotation.y)
 	_TrackToPosition(
 		global_transform.origin + dp
