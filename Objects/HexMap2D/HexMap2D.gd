@@ -5,6 +5,7 @@ extends Node2D
 # Export Variables
 # -------------------------------------------------------------------------
 export var map_data : Resource = null		setget set_map_data
+export var active_camera_group : String = ""
 
 
 # -------------------------------------------------------------------------
@@ -45,7 +46,6 @@ func _draw() -> void:
 		if not cell.eq(_mouse_cell):
 			_DrawHex(cell, map_data.cell_size, map_data.color_normal)
 	if _mouse_cell != null:
-		print("Drawing Mouse Cell: ", _mouse_cell.qrs)
 		_DrawHex(_mouse_cell, map_data.cell_size, map_data.color_highlight)
 
 # -------------------------------------------------------------------------
@@ -78,6 +78,22 @@ func _on_map_data_changed(hmd : HexMapData) -> void:
 
 func _on_input_bounced(event) -> void:
 	if event is InputEventMouseMotion and map_data != null:
+		var cams = get_tree().get_nodes_in_group(active_camera_group)
+		if cams.size() <= 0:
+			return
+		
+		if not cams[0] is Camera2D:
+			print("No active camera")
+			return
+		var cam = cams[0]
+		
+		var view = get_parent()
+		if not view is Viewport:
+			print("Not child of viewport")
+			return
+		
 		if _mouse_cell == null:
 			_mouse_cell = HexCell.new()
-		_mouse_cell.from_point(event.position / map_data.cell_size)
+		var pos : Vector2 = (event.position + cam.global_position) - (view.size * 0.5)
+		_mouse_cell.from_point(pos / map_data.cell_size)
+

@@ -20,13 +20,11 @@ export var tracking_max_distance : float = 5.0
 
 export var sensitivity : Vector2 = Vector2(0.2, 0.2)
 
-export var partner_camera2d_path : NodePath = ""					setget set_partner_camera2d_path
 export var target_node_path : NodePath = ""							setget set_target_node_path
 
 # -----------------------------------------------------------------------------
 # Variables
 # -----------------------------------------------------------------------------
-var _partner_camera_node : Camera2D = null
 var _target_node : Spatial = null
 var _last_target_pos : Vector3 = Vector3.ZERO
 var _tracking_tween : Tween = null
@@ -42,7 +40,8 @@ onready var _arm_node : Spatial = $Arm
 # -----------------------------------------------------------------------------
 func set_group_name(gn : String) -> void:
 	if group_name != "" and current:
-		remove_from_group(group_name)
+		if is_in_group(group_name):
+			remove_from_group(group_name)
 	group_name = gn
 	if group_name != "" and current:
 		add_to_group(group_name)
@@ -52,8 +51,10 @@ func set_current(c : bool) -> void:
 	current = c
 	if _camera_node:
 		_camera_node.current = c
-		if group_name != null and current:
+		if current and group_name != "":
 			add_to_group(group_name)
+		elif not current and group_name != "" and is_in_group(group_name):
+			remove_from_group(group_name)
 
 
 func set_collision_mask(m : int) -> void:
@@ -95,15 +96,6 @@ func set_target_node_path(tnp : NodePath) -> void:
 		if tn is Spatial:
 			_target_node = tn
 
-func set_partner_camera2d_path(pnp : NodePath) -> void:
-	partner_camera2d_path = pnp
-	if partner_camera2d_path == "":
-		_partner_camera_node = null
-	else:
-		var c = get_node_or_null(partner_camera2d_path)
-		if c is Camera2D:
-			_partner_camera_node = c
-
 
 func set_smooth_tracking(st : bool) -> void:
 	smooth_tracking = st
@@ -125,7 +117,6 @@ func _ready() -> void:
 	set_fov(fov)
 	set_near(near)
 	set_far(far)
-	set_partner_camera2d_path(partner_camera2d_path)
 	set_target_node_path(target_node_path)
 
 func _process(_delta) -> void:
@@ -133,11 +124,6 @@ func _process(_delta) -> void:
 		if _target_node.global_transform.origin != _last_target_pos:
 			_last_target_pos = _target_node.global_transform.origin
 			_TrackToPosition(_last_target_pos)
-	if _partner_camera_node != null:
-		_partner_camera_node.global_position = Vector2(
-			global_transform.origin.x,
-			global_transform.origin.z
-		)
 
 # -----------------------------------------------------------------------------
 # Private Methods
