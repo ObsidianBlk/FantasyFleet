@@ -16,6 +16,7 @@ enum VIEW {MODE_2D=0, MODE_3D=1}
 # Export Variables
 # -------------------------------------------------------------------------
 export (VIEW) var view_mode : int = VIEW.MODE_2D		setget set_view_mode
+export var active_joypad_id : int = 0
 
 # -------------------------------------------------------------------------
 # Variables
@@ -37,7 +38,12 @@ func set_view_mode(vm : int) -> void:
 # -------------------------------------------------------------------------
 # Override Methods
 # -------------------------------------------------------------------------
-
+func _ready() -> void:
+	var conjoy : Array = Input.get_connected_joypads()
+	if conjoy.size() > 0:
+		if conjoy.find(active_joypad_id) < 0:
+			active_joypad_id = conjoy[0]
+		
 
 # -------------------------------------------------------------------------
 # Private Methods
@@ -50,6 +56,16 @@ func set_view_mode(vm : int) -> void:
 # -------------------------------------------------------------------------
 func bounce_input(event) -> void:
 	emit_signal("input_bounced", event)
+
+func get_joypad_list() -> Array:
+	var joys : Array = []
+	var conjoy : Array = Input.get_connected_joypads()
+	for did in conjoy:
+		joys.append({
+			"id": did,
+			"name": Input.get_joy_name(did)
+		})
+	return joys
 
 # -------------------------------------------------------------------------
 # Handler Methods
