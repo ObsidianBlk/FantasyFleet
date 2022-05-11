@@ -51,8 +51,8 @@ func _ready() -> void:
 	_grid_material_focus = _grid_material_normal.duplicate()
 	_grid_material_focus.albedo_color = Color(0,0,1) if map_data == null else map_data.color_focus
 	
+	Game.connect("input_bounced", self, "_on_input_bounced")
 	HexMap.connect("map_data_changed", self, "_on_map_data_changed")
-	HexMap.connect("input_bounced", self, "_on_input_bounced")
 
 func _process(_delta : float) -> void:
 	if map_data != null:
@@ -90,7 +90,7 @@ func _BuildMesh() -> void:
 	for cell in region:
 		if not cell.eq(_mouse_cell):
 			_BuildHex(st, cell, size, _grid_material_normal)
-	if _mouse_cell != null:
+	if Game.view_mode == Game.VIEW.MODE_3D and _mouse_cell != null:
 		_BuildHex(st, _mouse_cell, size, _grid_material_highlight)
 
 

@@ -19,6 +19,9 @@ viewport_path = NodePath("Viewport3D")
 resource_local_to_scene = true
 shader = ExtResource( 1 )
 shader_param/view2d_active = true
+shader_param/window_rel_scale = 0.25
+shader_param/window_offset_x = 0.1
+shader_param/window_offset_y = 0.1
 shader_param/view3d = SubResource( 3 )
 shader_param/view2d = SubResource( 2 )
 
@@ -28,7 +31,6 @@ script = ExtResource( 2 )
 [node name="CameraCTRL" type="Node" parent="."]
 script = ExtResource( 6 )
 camera3d_path = NodePath("../Viewport3D/OrbitCamera")
-camera2d_path = NodePath("../Viewport2D/CompanionCamera")
 
 [node name="Viewport3D" type="Viewport" parent="."]
 size = Vector2( 1920, 1080 )

@@ -3,12 +3,19 @@ extends Node
 # -------------------------------------------------------------------------
 # Signals
 # -------------------------------------------------------------------------
-signal map_data_changed(hmd)
+signal input_bounced(event)
+signal view_mode_changed(mode)
+
+
+# -------------------------------------------------------------------------
+# Constants and ENUMs
+# -------------------------------------------------------------------------
+enum VIEW {MODE_2D=0, MODE_3D=1}
 
 # -------------------------------------------------------------------------
 # Export Variables
 # -------------------------------------------------------------------------
-export var hex_map_data : Resource = null			setget set_hex_map_data
+export (VIEW) var view_mode : int = VIEW.MODE_2D		setget set_view_mode
 
 # -------------------------------------------------------------------------
 # Variables
@@ -22,10 +29,10 @@ export var hex_map_data : Resource = null			setget set_hex_map_data
 # -------------------------------------------------------------------------
 # Setters / Getters
 # -------------------------------------------------------------------------
-func set_hex_map_data (hmd : Resource) -> void:
-	if hmd is HexMapData:
-		hex_map_data = hmd
-		emit_signal("map_data_changed", hex_map_data)
+func set_view_mode(vm : int) -> void:
+	if VIEW.values().find(vm) >= 0:
+		view_mode = vm
+		emit_signal("view_mode_changed", view_mode)
 
 # -------------------------------------------------------------------------
 # Override Methods
@@ -41,9 +48,9 @@ func set_hex_map_data (hmd : Resource) -> void:
 # -------------------------------------------------------------------------
 # Public Methods
 # -------------------------------------------------------------------------
-
+func bounce_input(event) -> void:
+	emit_signal("input_bounced", event)
 
 # -------------------------------------------------------------------------
 # Handler Methods
 # -------------------------------------------------------------------------
-

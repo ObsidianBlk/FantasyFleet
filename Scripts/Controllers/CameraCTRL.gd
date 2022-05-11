@@ -5,7 +5,6 @@ extends Node
 # Export Variables
 # -----------------------------------------------------------------------------
 export var camera3d_path : NodePath = ""		setget set_camera3d_path
-export var camera2d_path : NodePath = ""		setget set_camera2d_path
 
 
 
@@ -13,11 +12,11 @@ export var camera2d_path : NodePath = ""		setget set_camera2d_path
 # Variables
 # -----------------------------------------------------------------------------
 var _camera3d_node : Spatial = null
-var _camera2d_node : Camera2D = null
 
 
 var _axis_strength : Vector2 = Vector2.ZERO
 var _mod_key : Array = [false, false]
+
 
 # -----------------------------------------------------------------------------
 # Setters / Getters
@@ -31,32 +30,22 @@ func set_camera3d_path(p : NodePath) -> void:
 		if cn and cn.has_method("move"):
 			_camera3d_node = cn
 
-func set_camera2d_path(p : NodePath) -> void:
-	camera2d_path = p
-	if camera2d_path == "":
-		_camera2d_node = null
-	else:
-		var cn = get_node_or_null(camera2d_path)
-		if cn and cn is Camera2D:
-			_camera2d_node = cn
-
 # -----------------------------------------------------------------------------
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	set_camera2d_path(camera2d_path)
 	set_camera3d_path(camera3d_path)
 
 func _unhandled_input(event) -> void:
-	if _camera3d_node == null or _camera2d_node == null:
+	if _camera3d_node == null:
 		return
 	
 	if event is InputEventMouseMotion:
 		if _mod_key[0]:
-			_camera3d_node.move_ground(-event.relative)
+			_camera3d_node.move_ground(-event.relative, Game.view_mode == Game.VIEW.MODE_2D)
 		elif _mod_key[1]:
 			_camera3d_node.orbit(event.relative.x, event.relative.y)
-		HexMap.bounce_input(event)
+		Game.bounce_input(event)
 	elif event is InputEventJoypadMotion:
 		pass
 	elif event is InputEventMouseButton:
@@ -104,6 +93,3 @@ func _unhandled_input(event) -> void:
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
-func _HandleShiftStateEvents(event) -> void:
-	pass
-

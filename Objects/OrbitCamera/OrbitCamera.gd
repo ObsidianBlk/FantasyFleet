@@ -158,12 +158,14 @@ func set_target(target : Spatial) -> void:
 func move(delta_pos : Vector3) -> void:
 	_TrackToPosition(global_transform.origin + delta_pos)
 
-func move_ground(delta_pos : Vector2) -> void:
+func move_ground(delta_pos : Vector2, ignore_orientation : bool = false) -> void:
 	var dp : Vector3 = Vector3(
 		delta_pos.x,
 		0.0,
 		delta_pos.y
-	).rotated(Vector3.UP, rotation.y)
+	)
+	if not ignore_orientation:
+		dp = dp.rotated(Vector3.UP, rotation.y)
 	_TrackToPosition(
 		global_transform.origin + dp
 	)

@@ -10,7 +10,7 @@ func _ready() -> void:
 
 func _KickPig() -> void:
 	var hmd : HexMapData = HexMapData.new()
-	hmd.cell_size = 10.0
+	hmd.cell_size = 60.0
 	HexMap.hex_map_data = hmd
 
 func _on_GameScreen_resized():

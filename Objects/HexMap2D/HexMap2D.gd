@@ -25,13 +25,12 @@ func set_map_data(data : Resource) -> void:
 	if data == null or data is HexMapData:
 		map_data = data
 
-
 # -------------------------------------------------------------------------
 # Override Methods
 # -------------------------------------------------------------------------
 func _ready() -> void:
+	Game.connect("input_bounced", self, "_on_input_bounced")
 	HexMap.connect("map_data_changed", self, "_on_map_data_changed")
-	HexMap.connect("input_bounced", self, "_on_input_bounced")
 
 func _process(_delta : float) -> void:
 	update()
@@ -45,7 +44,7 @@ func _draw() -> void:
 	for cell in cells:
 		if not cell.eq(_mouse_cell):
 			_DrawHex(cell, map_data.cell_size, map_data.color_normal)
-	if _mouse_cell != null:
+	if Game.view_mode == Game.VIEW.MODE_2D and _mouse_cell != null:
 		_DrawHex(_mouse_cell, map_data.cell_size, map_data.color_highlight)
 
 # -------------------------------------------------------------------------
