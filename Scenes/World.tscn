@@ -44,6 +44,10 @@ active_camera_group = "active_3d_camera"
 group_name = "active_3d_camera"
 current = true
 far = 4000.0
+min_zoom = 100.0
+max_zoom = 2000.0
+zoom_step_min = 10.0
+zoom_step_max = 100.0
 sensitivity = Vector2( 0.02, 0.02 )
 
 [node name="Viewport2D" type="Viewport" parent="."]

@@ -56,8 +56,8 @@ func _unhandled_input(event) -> void:
 		elif _mod_key[1]:
 			_camera3d_node.orbit(event.relative.x, event.relative.y)
 		Game.bounce_input(event)
-	elif event is InputEventJoypadMotion:
-		pass#print("Joyous Motion!")
+	#elif event is InputEventJoypadMotion:  # NOTE: Working with joypad axii here cause joypad disconnection
+	#	pass#print("Joyous Motion!")		#   Is this a bug?
 	elif event is InputEventMouseButton:
 		match event.button_index:
 			BUTTON_RIGHT:

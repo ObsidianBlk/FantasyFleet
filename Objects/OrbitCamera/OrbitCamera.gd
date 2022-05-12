@@ -11,7 +11,8 @@ export var near : float = 0.05										setget set_near
 export var far : float = 100.0										setget set_far
 export var min_zoom : float = 0.01
 export var max_zoom : float = 1000.0
-export var zoom_step : float = 2.0
+export var zoom_step_min : float = 2.0								setget set_zoom_step_min
+export var zoom_step_max : float = 60.0								setget set_zoom_step_max
 export var pitch_degree_max : float = 45.0
 export var pitch_degree_min : float = -45.0
 export var smooth_tracking : bool = false							setget set_smooth_tracking
@@ -28,6 +29,8 @@ export var target_node_path : NodePath = ""							setget set_target_node_path
 var _target_node : Spatial = null
 var _last_target_pos : Vector3 = Vector3.ZERO
 var _tracking_tween : Tween = null
+
+var _zoom_step : float = 0.0
 
 # -----------------------------------------------------------------------------
 # Onready Variables
@@ -87,6 +90,16 @@ func set_far(f : float) -> void:
 			_camera_node.near = near
 			_camera_node.far = far
 
+func set_zoom_step_min(zs : float) -> void:
+	if zs > 0.0 and zs <= zoom_step_max:
+		zoom_step_min = zs
+		_UpdateZoomStep()
+
+func set_zoom_step_max(zs : float) -> void:
+	if zs >= zoom_step_min:
+		zoom_step_max = zs
+		_UpdateZoomStep()
+
 func set_target_node_path(tnp : NodePath) -> void:
 	target_node_path = tnp
 	if target_node_path == "":
@@ -118,6 +131,7 @@ func _ready() -> void:
 	set_near(near)
 	set_far(far)
 	set_target_node_path(target_node_path)
+	set_zoom(min_zoom)
 
 func _process(_delta) -> void:
 	if _target_node != null:
@@ -144,6 +158,15 @@ func _TrackToPosition(pos : Vector3) -> void:
 			_tracking_tween.start()
 			return
 	global_transform.origin = pos
+
+
+func _UpdateZoomStep() -> void:
+	if _arm_node == null:
+		return
+	var step_range : float = zoom_step_max - zoom_step_min
+	var arm_rel_dist : float = _arm_node.transform.origin.z / max_zoom
+	var step_dist = max(0.0, min(step_range, step_range * arm_rel_dist))
+	_zoom_step = zoom_step_min + step_dist
 
 # -----------------------------------------------------------------------------
 # Public Methods
@@ -174,16 +197,20 @@ func orbit(yaw : float, pitch : float) -> void:
 	rotation.y = wrapf(rotation.y - (yaw * sensitivity.x), 0.0, TAU)
 	rotation.x = clamp(rotation.x - (pitch * sensitivity.y), deg2rad(pitch_degree_min), deg2rad(pitch_degree_max))
 
+func set_zoom(zoom_level : float) -> void:
+	_arm_node.transform.origin.z = min(max_zoom, max(min_zoom, zoom_level))
+	_UpdateZoomStep()
+
 func zoom(amount : float) -> void:
 	var y = _arm_node.transform.origin.z
 	_arm_node.transform.origin.z = min(max_zoom, max(min_zoom, y - amount))
-	print("Zoom: ", _arm_node.transform.origin.z)
+	_UpdateZoomStep()
 
 func zoom_in() -> void:
-	zoom(-zoom_step)
+	zoom(-_zoom_step)
 
 func zoom_out() -> void:
-	zoom(zoom_step)
+	zoom(_zoom_step)
 
 func project_ray_origin(pos : Vector2) -> Vector3:
 	if _camera_node:
