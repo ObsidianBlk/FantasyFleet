@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://UI/Options/Tabs/GameControls/GamePadSelector.gd" type="Script" id=1]
+
+[node name="GameControls" type="MarginContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_constants/margin_right = 4
+custom_constants/margin_top = 4
+custom_constants/margin_left = 4
+custom_constants/margin_bottom = 4
+
+[node name="VBC" type="VBoxContainer" parent="."]
+margin_left = 4.0
+margin_top = 4.0
+margin_right = 1916.0
+margin_bottom = 1076.0
+
+[node name="Gamepad" type="HBoxContainer" parent="VBC"]
+margin_right = 1912.0
+margin_bottom = 20.0
+
+[node name="Label" type="Label" parent="VBC/Gamepad"]
+margin_top = 3.0
+margin_right = 69.0
+margin_bottom = 17.0
+text = "Gamepad: "
+
+[node name="GamePadSelector" type="MenuButton" parent="VBC/Gamepad"]
+margin_left = 73.0
+margin_right = 1912.0
+margin_bottom = 20.0
+focus_mode = 2
+size_flags_horizontal = 3
+text = "Select Gamepad"
+flat = false
+align = 0
+script = ExtResource( 1 )

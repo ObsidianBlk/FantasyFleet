@@ -36,7 +36,6 @@ func set_camera3d_path(p : NodePath) -> void:
 # -----------------------------------------------------------------------------
 func _ready() -> void:
 	set_camera3d_path(camera3d_path)
-	Input.connect("joy_connection_changed", self, "_on_joy_changed")
 
 func _process(_delta : float) -> void:
 	_ReadJoypadAxis()
@@ -123,5 +122,3 @@ func _ReadJoypadAxis() -> void:
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
-func _on_joy_changed(device_id : int, connected : bool) -> void:
-	print ("Connected, Device ", device_id, ": ", connected)
