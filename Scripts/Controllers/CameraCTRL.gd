@@ -15,6 +15,7 @@ var _camera3d_node : Spatial = null
 
 
 var _L_axis_strength : Vector2 = Vector2.ZERO
+var _L_keyboard : bool = false
 var _R_axis_strength : Vector2 = Vector2.ZERO
 var _mod_key : Array = [false, false]
 
@@ -69,21 +70,25 @@ func _unhandled_input(event) -> void:
 				_camera3d_node.zoom_out()
 	else:
 		if event.is_action("game_up"):
+			_L_keyboard = true
 			if event.is_action_pressed("game_up"):
 				_L_axis_strength.y = 0.0 if Input.is_action_pressed("game_down") else 1.0
 			elif event.is_action_released("game_up"):
 				_L_axis_strength.y = -1.0 if Input.is_action_pressed("game_down") else 0.0
 		elif event.is_action("game_down"):
+			_L_keyboard = true
 			if event.is_action_pressed("game_down"):
 				_L_axis_strength.y = 0.0 if Input.is_action_pressed("game_up") else -1.0
 			elif event.is_action_released("game_down"):
 				_L_axis_strength.y = 1.0 if Input.is_action_pressed("game_up") else 0.0
 		elif event.is_action("game_left"):
+			_L_keyboard = true
 			if event.is_action_pressed("game_left"):
 				_L_axis_strength.x = 0.0 if Input.is_action_pressed("game_right") else 1.0
 			elif event.is_action_released("game_left"):
 				_L_axis_strength.x = -1.0 if Input.is_action_pressed("game_right") else 0.0
 		elif event.is_action("game_right"):
+			_L_keyboard = true
 			if event.is_action_pressed("game_right"):
 				_L_axis_strength.x = 0.0 if Input.is_action_pressed("game_left") else -1.0
 			elif event.is_action_released("game_right"):
@@ -109,8 +114,9 @@ func _ReadJoypadAxis() -> void:
 	var x = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_0)
 	var y = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_1)
 	if abs(x) > 0.4 or abs(y) > 0.4: # TODO: Make dead zone more configurable
+		_L_keyboard = false
 		_L_axis_strength = Vector2(x, y)
-	elif abs(x) < 0.1 and abs(y) < 0.1:
+	elif abs(x) < 0.1 and abs(y) < 0.1 and not _L_keyboard:
 		_L_axis_strength = Vector2.ZERO
 	x = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_2)
 	y = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_3)

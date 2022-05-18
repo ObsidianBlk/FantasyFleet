@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://UI/Options/Tabs/GameControls/GamePadSelector.gd" type="Script" id=1]
+[ext_resource path="res://UI/Options/Tabs/GameControls/InputMapCTRL.tscn" type="PackedScene" id=2]
 
 [node name="GameControls" type="MarginContainer"]
 anchor_right = 1.0
@@ -36,3 +37,40 @@ text = "Select Gamepad"
 flat = false
 align = 0
 script = ExtResource( 1 )
+
+[node name="InputMapSep" type="HBoxContainer" parent="VBC"]
+margin_top = 24.0
+margin_right = 1912.0
+margin_bottom = 38.0
+
+[node name="HSeparator" type="HSeparator" parent="VBC/InputMapSep"]
+margin_right = 919.0
+margin_bottom = 14.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="VBC/InputMapSep"]
+margin_left = 923.0
+margin_right = 988.0
+margin_bottom = 14.0
+text = "Input Map"
+
+[node name="HSeparator2" type="HSeparator" parent="VBC/InputMapSep"]
+margin_left = 992.0
+margin_right = 1912.0
+margin_bottom = 14.0
+size_flags_horizontal = 3
+
+[node name="InputMapScroll" type="ScrollContainer" parent="VBC"]
+margin_top = 42.0
+margin_right = 1912.0
+margin_bottom = 1072.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="InputMapCTRL" parent="VBC/InputMapScroll" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 1912.0
+margin_bottom = 1030.0
+size_flags_horizontal = 3
+size_flags_vertical = 3

@@ -11,6 +11,16 @@ signal active_joypad_changed(device, device_name)
 # -------------------------------------------------------------------------
 # Constants and ENUMs
 # -------------------------------------------------------------------------
+const _INPUT_ACTION_DEF = [
+	{action_name="game_up", description="Move Map Up"},
+	{action_name="game_down", description="Move Map Down"},
+	{action_name="game_left", description="Move Map Left"},
+	{action_name="game_right", description="Move Map Right"},
+	{action_name="game_shift", description="Toggle Something"},
+	{action_name="game_ctrl", description="Toggle Something Else"},
+	{action_name="game_view_toggle", description="Toggle 2D/3D View"}
+]
+
 enum VIEW {MODE_2D=0, MODE_3D=1}
 
 # -------------------------------------------------------------------------
@@ -58,7 +68,7 @@ func _UpdateJoypadActions() -> void:
 		var ielist : Array = InputMap.get_action_list(action)
 		for ie in ielist:
 			if ie is InputEventJoypadButton:
-				print ("Joypad Button discovered for action: ", action)
+				#print ("Joypad Button discovered for action: ", action)
 				ie.device = active_joypad_id
 
 
@@ -84,6 +94,12 @@ func set_joypad_to_first_identified() -> bool:
 		set_active_joypad_id(conjoy[0])
 		return true
 	return false
+
+func get_action_description(action_name : String) -> String:
+	for a in _INPUT_ACTION_DEF:
+		if a.action_name == action_name:
+			return a.description
+	return ""
 
 # -------------------------------------------------------------------------
 # Handler Methods
