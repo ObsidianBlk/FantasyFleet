@@ -36,6 +36,8 @@ func _KickPig() -> void:
 	var hmd : HexMapData = HexMapData.new()
 	hmd.cell_size = 60.0
 	HexMap.hex_map_data = hmd
+	
+	#print(ProjectSettings.get_setting("input/ui_up"))
 
 # -------------------------------------------------------------------------
 # Handler Methods
