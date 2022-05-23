@@ -178,20 +178,24 @@ func add_action_to_group(group_name : String, action_name : String) -> bool:
 		printerr("EIM ERROR: Extended Input Group Name identifier, \"", group_name, "\" invalid.")
 		return false
 	
-	if ProjectSettings.has_setting(action_name):
-		var action = ProjectSettings.get_setting(action_name)
-		if typeof(action) != TYPE_DICTIONARY:
-			return false
-		if not "deadzone" in action:
-			return false
-		if not "events" in action:
-			return false
+	if not ProjectSettings.has_setting(action_name):
+		return false
+	
+	var action = ProjectSettings.get_setting(action_name)
+	if typeof(action) != TYPE_DICTIONARY:
+		return false
+	if not "deadzone" in action:
+		return false
+	if not "events" in action:
+		return false
+	
 	
 	var key = _project_name + SUBPROP_EI_GROUPS + group_name
 	if not ProjectSettings.has_setting(key):
 		return false
 	
 	var glist = get_group_list()
+	var res : bool = false
 	for gname in glist:
 		if typeof(gname) != TYPE_STRING or not gname.is_valid_identifier():
 			continue
@@ -199,21 +203,21 @@ func add_action_to_group(group_name : String, action_name : String) -> bool:
 		var data = _GetGroupData(gkey, true)
 		if typeof(data) == TYPE_STRING:
 			printerr("EIM ERROR: ", data)
-		if typeof(data) == TYPE_DICTIONARY:
+		elif typeof(data) == TYPE_DICTIONARY:
 			if gkey == key: # Add it if this is the target group
 				if data.actions.find(action_name) < 0:
 					data.actions.append(action_name)
 					ProjectSettings.set_setting(key, data)
-				return true
+				res = true
 			else: # Remove it if this is NOT the target group
 				var idx : int = data.actions.find(action_name)
 				if idx >= 0:
 					data.actions.remove(idx)
 					ProjectSettings.set_settings(gkey, data)
-	return false
+	return res
 
 
-func is_action_assigned_group(group_name : String, action_name : String) -> bool:
+func is_action_in_group(group_name : String, action_name : String) -> bool:
 	if _project_name != "" and group_name.is_valid_identifier():
 		var key = _project_name + SUBPROP_EI_GROUPS + group_name
 		var data = _GetGroupData(key)
@@ -221,6 +225,16 @@ func is_action_assigned_group(group_name : String, action_name : String) -> bool
 			printerr("EIM ERROR: ", data)
 		elif typeof(data) == TYPE_DICTIONARY:
 			return data.actions.find(action_name) >= 0
+	return false
+
+func is_action_assigned_group(action_name : String) -> bool:
+	if _project_name == "":
+		return false
+	
+	var glist = get_group_list()
+	for group_name in glist:
+		if is_action_in_group(group_name, action_name):
+			return true
 	return false
 
 # -------------------------------------------------------------------------

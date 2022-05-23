@@ -37,6 +37,10 @@ func _KickPig() -> void:
 	hmd.cell_size = 60.0
 	HexMap.hex_map_data = hmd
 	
+#	var pl = ProjectSettings.get_property_list()
+#	for p in pl:
+#		if p.name.begins_with("input/"):
+#			print(p.name)
 	#print(ProjectSettings.get_setting("input/ui_up"))
 
 # -------------------------------------------------------------------------

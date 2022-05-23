@@ -60,7 +60,7 @@ func _InitializeEIM(proj_name : String, initialize_default_inputs : bool) -> voi
 		printerr("WARNING: EIM already appears initialized, or required custom setting name created outside EIM control.")
 		return
 	
-	if ProjectSettings.save_custom("res://project_original.godot") != OK:
+	if ProjectSettings.save_custom("project_original.godot") != OK:
 		printerr("EIM ERROR: Failed to save \"project_original.godot\" file. Canceling EIM initialization.")
 		return
 	
@@ -105,7 +105,7 @@ func _on_eim_deactivated() -> void:
 	unenabledui_node.visible = true
 
 func _on_Project_LineEdit_text_changed(new_text : String) -> void:
-	proj_btn_node.disabled = (new_text != "" and new_text.is_valid_identifier())
+	proj_btn_node.disabled = (new_text == "" or not new_text.is_valid_identifier())
 
 
 func _on_Project_Enable_pressed() -> void:
@@ -114,4 +114,5 @@ func _on_Project_Enable_pressed() -> void:
 	_InitializeEIM(proj_line_node.text, true)
 	_CheckUI()
 
-
+func _on_disable_eim_pressed():
+	_DeconstructEIM()
