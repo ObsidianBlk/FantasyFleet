@@ -68,6 +68,12 @@ func _GetGroupData(key : String, basic_validation : bool = false): # Returns Nul
 		return data
 	return null
 
+func _FindDataAction(data : Dictionary, action_name : String) -> int:
+	for i in range(0, data.actions.size()):
+		if data.actions[i].name == action_name:
+			return i
+	return -1
+
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -107,7 +113,7 @@ func get_group_list() -> Array:
 	var glist = ProjectSettings.get_setting(_project_name + PROP_EI_GROUP_LIST)
 	if typeof(glist) != TYPE_ARRAY:
 		return []
-	return glist
+	return glist.duplicate()
 
 
 func set_group(group_name : String, unique_inputs : bool = true, preserv_actions : bool = false) -> bool:
@@ -160,15 +166,40 @@ func has_group(group_name : String) -> bool:
 		return ProjectSettings.has_setting(key)
 	return false
 
+
+func set_group_inputs_unique(group_name : String, unique : bool = true) -> void:
+	if _project_name != "" and group_name.is_valid_identifier():
+		var key = _project_name + SUBPROP_EI_GROUPS + group_name
+		var data = _GetGroupData(key, true)
+		if typeof(data) == TYPE_DICTIONARY:
+			if data.unique_inputs != unique:
+				data.unique_inputs = unique
+				ProjectSettings.set_setting(key, data)
+		else:
+			printerr("EIM ERROR: ", data)
+
+
+func are_group_inputs_unique(group_name : String) -> bool:
+	if _project_name != "" and group_name.is_valid_identifier():
+		var key = _project_name + SUBPROP_EI_GROUPS + group_name
+		var data = _GetGroupData(key, true)
+		if typeof(data) == TYPE_DICTIONARY:
+			return data.unique_inputs
+		printerr("EIM ERROR: ", data)
+	return false
+
+
 func get_group_action_list(group_name : String) -> Array:
+	var adlist : Array = []
 	if _project_name != "" and group_name.is_valid_identifier():
 		var key = _project_name + SUBPROP_EI_GROUPS + group_name
 		var data = _GetGroupData(key)
 		if typeof(data) == TYPE_STRING:
 			printerr("EIM ERROR: ", data)
 		elif typeof(data) == TYPE_DICTIONARY:
-			return data.actions.duplicate()
-	return []
+			for adat in data.actions:
+				adlist.append({"name":adat.name, "desc":adat.desc})
+	return adlist
 
 func add_action_to_group(group_name : String, action_name : String) -> bool:
 	if _project_name == "":
@@ -193,28 +224,69 @@ func add_action_to_group(group_name : String, action_name : String) -> bool:
 	var key = _project_name + SUBPROP_EI_GROUPS + group_name
 	if not ProjectSettings.has_setting(key):
 		return false
+	var data = _GetGroupData(key, true)
+	if typeof(data) == TYPE_STRING:
+		printerr("EIM ERROR: ", data)
+		return false
 	
 	var glist = get_group_list()
-	var res : bool = false
+	var desc : String = ""
 	for gname in glist:
 		if typeof(gname) != TYPE_STRING or not gname.is_valid_identifier():
 			continue
 		var gkey : String = _project_name + SUBPROP_EI_GROUPS + gname
-		var data = _GetGroupData(gkey, true)
+		var gdata = _GetGroupData(gkey, true)
 		if typeof(data) == TYPE_STRING:
 			printerr("EIM ERROR: ", data)
 		elif typeof(data) == TYPE_DICTIONARY:
-			if gkey == key: # Add it if this is the target group
-				if data.actions.find(action_name) < 0:
-					data.actions.append(action_name)
-					ProjectSettings.set_setting(key, data)
-				res = true
-			else: # Remove it if this is NOT the target group
+			if gkey != key: # If not group check to see if action exists
 				var idx : int = data.actions.find(action_name)
 				if idx >= 0:
+					desc = data.actions[idx].desc
 					data.actions.remove(idx)
 					ProjectSettings.set_settings(gkey, data)
-	return res
+	
+	
+	var idx = _FindDataAction(data, action_name)
+	if idx < 0:
+		data.actions.append({"name": action_name, "desc":desc})
+	else:
+		data.actions[idx].desc = desc
+	ProjectSettings.set_setting(key, data)
+	
+	return true
+
+
+func drop_action_from_group(group_name : String, action_name : String) -> void:
+	if _project_name == "":
+		return
+	if not group_name.is_valid_identifier():
+		printerr("EIM ERROR: Extended Input Group Name identifier, \"", group_name, "\" invalid.")
+		return
+	var key = _project_name + SUBPROP_EI_GROUPS + group_name
+	var data = _GetGroupData(key, true)
+	if typeof(data) == TYPE_STRING:
+		printerr("EIM ERROR: ", data)
+	var idx : int = _FindDataAction(data, action_name)
+	if idx >= 0:
+		data.actions.remove(idx)
+		ProjectSettings.set_setting(key, data)
+
+
+func set_group_action_description(group_name : String, action_name : String, description : String) -> void:
+	if _project_name == "":
+		return
+	if not group_name.is_valid_identifier():
+		printerr("EIM ERROR: Extended Input Group Name identifier, \"", group_name, "\" invalid.")
+		return
+	var key = _project_name + SUBPROP_EI_GROUPS + group_name
+	var data = _GetGroupData(key, true)
+	if typeof(data) == TYPE_STRING:
+		printerr("EIM ERROR: ", data)
+	var idx : int = _FindDataAction(data, action_name)
+	if idx >= 0:
+		data.actions[idx].desc = description
+		ProjectSettings.set_setting(key, data)
 
 
 func is_action_in_group(group_name : String, action_name : String) -> bool:
@@ -224,7 +296,7 @@ func is_action_in_group(group_name : String, action_name : String) -> bool:
 		if typeof(data) == TYPE_STRING:
 			printerr("EIM ERROR: ", data)
 		elif typeof(data) == TYPE_DICTIONARY:
-			return data.actions.find(action_name) >= 0
+			return _FindDataAction(data, action_name) >= 0
 	return false
 
 func is_action_assigned_group(action_name : String) -> bool:
@@ -235,6 +307,42 @@ func is_action_assigned_group(action_name : String) -> bool:
 	for group_name in glist:
 		if is_action_in_group(group_name, action_name):
 			return true
+	return false
+
+func action_has_key_inputs(action_name : String) -> bool:
+	var action = ProjectSettings.get_setting(action_name)
+	if typeof(action) == TYPE_DICTIONARY:
+		if "events" in action:
+			for event in action.events:
+				if event is InputEventKey:
+					return true
+	return false
+
+func action_has_mouse_inputs(action_name : String) -> bool:
+	var action = ProjectSettings.get_setting(action_name)
+	if typeof(action) == TYPE_DICTIONARY:
+		if "events" in action:
+			for event in action.events:
+				if event is InputEventMouseButton:
+					return true
+	return false
+
+func action_has_joypad_button_inputs(action_name : String) -> bool:
+	var action = ProjectSettings.get_setting(action_name)
+	if typeof(action) == TYPE_DICTIONARY:
+		if "events" in action:
+			for event in action.events:
+				if event is InputEventJoypadButton:
+					return true
+	return false
+
+func action_has_joypad_axii_inputs(action_name : String) -> bool:
+	var action = ProjectSettings.get_setting(action_name)
+	if typeof(action) == TYPE_DICTIONARY:
+		if "events" in action:
+			for event in action.events:
+				if event is InputEventJoypadMotion:
+					return true
 	return false
 
 # -------------------------------------------------------------------------

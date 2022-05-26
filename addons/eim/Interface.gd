@@ -97,12 +97,14 @@ func _DeconstructEIM(force : bool = false) -> void:
 # Handler Methods
 # -------------------------------------------------------------------------
 func _on_eim_initialized(proj_name : String) -> void:
-	unenabledui_node.visible = false
-	ui_node.visible = true
+	if unenabledui_node and ui_node:
+		unenabledui_node.visible = false
+		ui_node.visible = true
 
 func _on_eim_deactivated() -> void:
-	ui_node.visible = false
-	unenabledui_node.visible = true
+	if unenabledui_node and ui_node:
+		ui_node.visible = false
+		unenabledui_node.visible = true
 
 func _on_Project_LineEdit_text_changed(new_text : String) -> void:
 	proj_btn_node.disabled = (new_text == "" or not new_text.is_valid_identifier())
@@ -112,7 +114,10 @@ func _on_Project_Enable_pressed() -> void:
 	if proj_line_node.text == "" or not proj_line_node.text.is_valid_identifier():
 		return # Technically, this should never be a worry, but better safe than sorry.
 	_InitializeEIM(proj_line_node.text, true)
-	_CheckUI()
+	_on_eim_initialized("")
 
 func _on_disable_eim_pressed():
 	_DeconstructEIM()
+
+func _on_save_project_settings_pressed():
+	ProjectSettings.save()

@@ -72,12 +72,24 @@ margin_bottom = 1072.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="DisableEIM" type="HBoxContainer" parent="EnabledUI/VBC"]
+[node name="TopBar" type="HBoxContainer" parent="EnabledUI/VBC"]
 margin_right = 1904.0
 margin_bottom = 20.0
 
-[node name="Button" type="Button" parent="EnabledUI/VBC/DisableEIM"]
-margin_right = 108.0
+[node name="SaveProjSettings" type="Button" parent="EnabledUI/VBC/TopBar"]
+margin_right = 96.0
+margin_bottom = 20.0
+text = "Save Settings"
+
+[node name="Spacer" type="Control" parent="EnabledUI/VBC/TopBar"]
+margin_left = 100.0
+margin_right = 1792.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+
+[node name="DisableEIM" type="Button" parent="EnabledUI/VBC/TopBar"]
+margin_left = 1796.0
+margin_right = 1904.0
 margin_bottom = 20.0
 text = "Deactivate EIM"
 
@@ -97,4 +109,5 @@ size_flags_vertical = 3
 
 [connection signal="text_changed" from="UnenabledUI/Project/LineEdit" to="." method="_on_Project_LineEdit_text_changed"]
 [connection signal="pressed" from="UnenabledUI/Project/Enable" to="." method="_on_Project_Enable_pressed"]
-[connection signal="pressed" from="EnabledUI/VBC/DisableEIM/Button" to="." method="_on_disable_eim_pressed"]
+[connection signal="pressed" from="EnabledUI/VBC/TopBar/SaveProjSettings" to="." method="_on_save_project_settings_pressed"]
+[connection signal="pressed" from="EnabledUI/VBC/TopBar/DisableEIM" to="." method="_on_disable_eim_pressed"]
