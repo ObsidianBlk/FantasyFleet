@@ -41,7 +41,7 @@ func _KickPig() -> void:
 #	for p in pl:
 #		if p.name.begins_with("input/"):
 #			print(p.name)
-	#print(ProjectSettings.get_setting("input/ui_up"))
+	print(ProjectSettings.get_setting("input/ui_up").events[0].get_class())
 
 # -------------------------------------------------------------------------
 # Handler Methods

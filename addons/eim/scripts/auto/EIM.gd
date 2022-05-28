@@ -74,6 +74,34 @@ func _FindDataAction(data : Dictionary, action_name : String) -> int:
 			return i
 	return -1
 
+func _IsValidAction(act) -> bool:
+	return typeof(act) == TYPE_DICTIONARY and "events" in act
+
+func _AreActionsUnique(action1_name : String, action2_name : String) -> bool:
+	var action1 = ProjectSettings.get_setting(action1_name)
+	if _IsValidAction(action1):
+		return false
+	var action2 = ProjectSettings.get_setting(action2_name)
+	if _IsValidAction(action2):
+		return false
+	for a1e in action1.events:
+		for a2e in action2.events:
+			if a1e.get_class() == a2e.get_class():
+				match a1e.get_class():
+					"InputEventKey":
+						if a1e.scancode == a2e.scancode and a1e.physical_scancode == a2e.physical_scancode:
+							return false
+					"InputEventMouseButton":
+						if a1e.button_index == a2e.button_index:
+							return false
+					"InputEventJoypadMotion":
+						if a1e.axis == a2e.axis:
+							return false
+					"InputEventJoypadButton":
+						if a1e.button_index == a2e.button_index:
+							return false
+				return true
+	return false
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -287,6 +315,59 @@ func set_group_action_description(group_name : String, action_name : String, des
 	if idx >= 0:
 		data.actions[idx].desc = description
 		ProjectSettings.set_setting(key, data)
+
+
+func replace_group_action_input(group_name : String, action_name : String, old_input : InputEvent, new_input : InputEvent) -> void:
+	if not is_action_in_group(group_name, action_name):
+		printerr("EIM ERROR: Action \"", action_name, "\" not assigned group \"", group_name, "\". Ignoring due to possible conflict with ungrouped input(s).")
+		return
+	if old_input.get_class() != new_input.get_class():
+		printerr("EIM ERROR: Old input event not same type as new input event.")
+		return # Only replace inputs of the same type
+	var action = ProjectSettings.get_setting(action_name)
+	if not (typeof(action) == TYPE_DICTIONARY and "events" in action):
+		printerr("EIM ERROR: Action \"", action_name, "\" missing or invalid.")
+	for event in action.events:
+		var event_class : String = event.get_class()
+		if event.get_class() == old_input.get_class():
+			match event.get_class():
+				"InputEventKey":
+					if event.scancode == old_input.scancode and event.physical_scancode == old_input.physical_scancode:
+						event.scancode = new_input.scancode
+						event.physical_scancode = new_input.physical_scancode
+				"InputEventMouseButton":
+					if event.button_index == old_input.button_index:
+						event.button_index = new_input.button_index
+				"InputEventJoypadMotion":
+					if event.axis == old_input.axis:
+						event.axis = new_input.axis
+				"InputEventJoypadButton":
+					if event.button_index == old_input.button_index:
+						event.button_index = new_input.button_index
+			# NOTE: I'm going to assume, at the moment, that the event values will
+			#   modify in place
+
+
+func is_group_action_inputs_unique(group_name : String, action_name : String) -> bool:
+	if not is_action_in_group(group_name, action_name):
+		return false
+	var alist = get_group_action_list(group_name)
+	if alist.size() > 0:
+		for adata in alist:
+			if adata.name != action_name:
+				if not _AreActionsUnique(action_name, adata.name):
+					return false
+	return true
+
+
+func is_group_actions_unique(group_name : String) -> bool:
+	var alist = get_group_action_list(group_name)
+	if alist.size() > 0:
+		for a1idx in range(alist.size() - 1):
+			for a2idx in range(a1idx + 1, alist.size()):
+				if not _AreActionsUnique(alist[a1idx].name, alist[a2idx].name):
+					return false
+	return true
 
 
 func is_action_in_group(group_name : String, action_name : String) -> bool:

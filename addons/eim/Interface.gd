@@ -1,5 +1,5 @@
 tool
-extends Container
+extends Control
 
 # -------------------------------------------------------------------------
 # Constants
@@ -31,8 +31,8 @@ const DEFAULT_ACTIONS : PoolStringArray = PoolStringArray([
 onready var unenabledui_node : Control = $UnenabledUI
 onready var ui_node : Control = $EnabledUI
 
-onready var proj_line_node : LineEdit = $UnenabledUI/Project/LineEdit
-onready var proj_btn_node : Button = $UnenabledUI/Project/Enable
+onready var proj_line_node : LineEdit = $UnenabledUI/VBC/Project/LineEdit
+onready var proj_btn_node : Button = $UnenabledUI/VBC/Project/Enable
 
 # -------------------------------------------------------------------------
 # Override Methods
