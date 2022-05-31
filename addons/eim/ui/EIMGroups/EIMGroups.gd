@@ -2,6 +2,11 @@ tool
 extends Control
 
 # -------------------------------------------------------------------------
+# Signals
+# -------------------------------------------------------------------------
+signal group_selected(group_name)
+
+# -------------------------------------------------------------------------
 # Constants
 # -------------------------------------------------------------------------
 const COLUMN_DESCRIPTION_COLOR : Color = Color(0.4, 0.4, 0.4)
@@ -48,6 +53,7 @@ func _ready() -> void:
 	EIM.connect("eim_deactivated", self, "_on_eim_deactivated")
 	tree_node.connect("button_pressed", self, "_on_tree_button_pressed")
 	tree_node.connect("item_edited", self, "_on_item_edited")
+	tree_node.connect("item_selected", self, "_on_item_selected")
 	gc_line_node.connect("text_changed", self, "_on_groupcreator_text_changed")
 	gc_add_node.connect("pressed", self, "_on_group_creator_add_pressed")
 	
@@ -192,6 +198,13 @@ func _on_item_edited() -> void:
 		if typeof(meta) == TYPE_STRING:
 			EIM.set_group_inputs_unique(meta, item.is_checked(col))
 
+
+func _on_item_selected() -> void:
+	var sel : TreeItem = tree_node.get_selected()
+	if sel:
+		var meta = sel.get_metadata(0)
+		if typeof(meta) == TYPE_STRING:
+			emit_signal("group_selected", meta)
 
 func _on_groupcreator_text_changed(text : String) -> void:
 	gc_add_node.disabled = (text == null or not text.is_valid_identifier())

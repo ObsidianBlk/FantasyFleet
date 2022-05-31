@@ -30,11 +30,59 @@ _global_script_class_icons={
 "HexMapData": ""
 }
 
+[FF]
+
+ei_groups_list=[ "UI_Actions" ]
+ei_groups/UI_Actions={
+"actions": [ {
+"desc": "",
+"name": "input/ui_accept"
+}, {
+"desc": "",
+"name": "input/ui_cancel"
+}, {
+"desc": "",
+"name": "input/ui_down"
+}, {
+"desc": "",
+"name": "input/ui_end"
+}, {
+"desc": "",
+"name": "input/ui_focus_next"
+}, {
+"desc": "",
+"name": "input/ui_focus_prev"
+}, {
+"desc": "",
+"name": "input/ui_home"
+}, {
+"desc": "",
+"name": "input/ui_left"
+}, {
+"desc": "",
+"name": "input/ui_page_down"
+}, {
+"desc": "",
+"name": "input/ui_page_up"
+}, {
+"desc": "",
+"name": "input/ui_right"
+}, {
+"desc": "",
+"name": "input/ui_select"
+}, {
+"desc": "",
+"name": "input/ui_up"
+} ],
+"unique_inputs": false
+}
+
 [application]
 
 config/name="Fantasy Fleet"
 run/main_scene="res://Scenes/World.tscn"
 config/icon="res://icon.png"
+config/eps_name="FF"
 
 [autoload]
 

@@ -96,6 +96,7 @@ func _DeconstructEIM(force : bool = false) -> void:
 # -------------------------------------------------------------------------
 # Handler Methods
 # -------------------------------------------------------------------------
+
 func _on_eim_initialized(proj_name : String) -> void:
 	if unenabledui_node and ui_node:
 		unenabledui_node.visible = false

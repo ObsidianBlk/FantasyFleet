@@ -84,7 +84,7 @@ margin_top = 26.0
 margin_right = 958.0
 margin_bottom = 154.0
 rect_min_size = Vector2( 0, 128 )
-items = [ "input/ui_accept", null, false, "input/ui_select", null, false, "input/ui_cancel", null, false, "input/ui_focus_next", null, false, "input/ui_focus_prev", null, false, "input/ui_left", null, false, "input/ui_right", null, false, "input/ui_up", null, false, "input/ui_down", null, false, "input/ui_page_up", null, false, "input/ui_page_down", null, false, "input/ui_home", null, false, "input/ui_end", null, false, "input/game_up", null, false, "input/game_down", null, false, "input/game_left", null, false, "input/game_right", null, false, "input/game_shift", null, false, "input/game_ctrl", null, false, "input/game_view_toggle", null, false ]
+items = [ "input/game_up", null, false, "input/game_down", null, false, "input/game_left", null, false, "input/game_right", null, false, "input/game_shift", null, false, "input/game_ctrl", null, false, "input/game_view_toggle", null, false ]
 
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="pressed" from="Inputs/Refresh/Button" to="." method="_on_inputs_refresh_pressed"]
