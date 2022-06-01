@@ -73,6 +73,11 @@ func _AddGroupToTree(group_name : String) -> TreeItem:
 	tree_item_group.set_cell_mode(1, TreeItem.CELL_MODE_CHECK)
 	tree_item_group.set_text(1, "Unique Inputs")
 	tree_item_group.set_editable(1, true)
+	tree_item_group.set_selectable(2, false)
+	tree_item_group.set_selectable(3, false)
+	tree_item_group.set_selectable(4, false)
+	tree_item_group.set_selectable(5, false)
+	tree_item_group.set_selectable(6, false)
 	if EIM.are_group_inputs_unique(group_name):
 		tree_item_group.set_checked(1, true)
 	
@@ -99,6 +104,12 @@ func _AddActionToGroup(tree_item_group : TreeItem, action_data : Dictionary) -> 
 	tree_item_action.set_text(1, action_data.desc)
 	tree_item_action.set_custom_bg_color(1, COLUMN_DESCRIPTION_COLOR, true)
 	tree_item_action.set_editable(1, true)
+	tree_item_action.set_selectable(0, false)
+	tree_item_action.set_selectable(2, false)
+	tree_item_action.set_selectable(3, false)
+	tree_item_action.set_selectable(4, false)
+	tree_item_action.set_selectable(5, false)
+	tree_item_action.set_selectable(6, false)
 	
 	if EIM.action_has_key_inputs(action_data.name):
 		tree_item_action.set_icon(2, preload("res://addons/eim/icons/input_keyboard.svg"))
