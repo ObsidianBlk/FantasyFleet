@@ -316,6 +316,17 @@ func set_group_action_description(group_name : String, action_name : String, des
 		data.actions[idx].desc = description
 		ProjectSettings.set_setting(key, data)
 
+func add_input_to_group_action(group_name : String, action_name : String, input : InputEvent) -> void:
+	if not is_action_in_group(group_name, action_name):
+		printerr("EIM ERROR: Action \"", action_name, "\" not assigned group \"", group_name, "\". Ignoring due to possible conflict with ungrouped input(s).")
+		return
+	var action = ProjectSettings.get_setting(action_name)
+	if not (typeof(action) == TYPE_DICTIONARY and "events" in action):
+		printerr("EIM ERROR: Action \"", action_name, "\" missing or invalid.")
+	if not action_has_input(action_name, input):
+		action.events.append(input)
+		InputMap.load_from_globals()
+
 
 func replace_group_action_input(group_name : String, action_name : String, old_input : InputEvent, new_input : InputEvent) -> void:
 	if not is_action_in_group(group_name, action_name):
@@ -388,6 +399,28 @@ func is_action_assigned_group(action_name : String) -> bool:
 	for group_name in glist:
 		if is_action_in_group(group_name, action_name):
 			return true
+	return false
+
+func action_has_input(action_name : String, input : InputEvent) -> bool:
+	var action = ProjectSettings.get_setting(action_name)
+	var input_class : String = input.get_class()
+	if typeof(action) == TYPE_DICTIONARY:
+		if "events" in action:
+			for event in action.events:
+				if event.get_class() == input_class:
+					match input_class:
+						"InputEventKey":
+							if event.scancode == input.scancode and event.physical_scancode == input.physical_scancode:
+								return true
+						"InputEventMouseButton":
+							if event.button_index == input.button_index:
+								return true
+						"InputEventJoypadMotion":
+							if event.axis == input.axis:
+								return true
+						"InputEventJoypadButton":
+							if event.button_index == input.button_index:
+								return false
 	return false
 
 func action_has_key_inputs(action_name : String) -> bool:

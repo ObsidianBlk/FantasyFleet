@@ -27,7 +27,11 @@ func _ready() -> void:
 # -------------------------------------------------------------------------
 func _on_ui_requested(ui_name : String) -> void:
 	visible = (self.name == ui_name)
+	if visible:
+		grab_focus()
 
 func _on_ui_toggle_requested(ui_name : String) -> void:
 	if self.name == ui_name:
 		visible = not visible
+		if visible:
+			grab_focus()

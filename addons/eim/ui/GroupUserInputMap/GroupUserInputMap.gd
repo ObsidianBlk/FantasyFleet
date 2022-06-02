@@ -12,6 +12,8 @@ const COLUMN_INPUT_PAD_BUTTON : int = 4
 
 const _THEME_TYPE_NAME : String = "GUIM"
 
+const InputMonitorDialog = preload("res://addons/eim/ui/InputMonitorDialog/InputMonitorDialog.tscn")
+
 # -------------------------------------------------------------------------
 # Export Variables
 # -------------------------------------------------------------------------
@@ -65,6 +67,15 @@ func _ready() -> void:
 # -------------------------------------------------------------------------
 # Private Methods
 # -------------------------------------------------------------------------
+func _WatchForInput(input_focus : int) -> void:
+	var imd = InputMonitorDialog.instance()
+	imd.input_focus = input_focus
+	imd.connect("input_captured", self, "_on_input_captured", [imd])
+	imd.connect("input_monitor_canceled", self, "_on_input_canceled", [imd])
+	add_child(imd)
+	imd.popup_centered()
+
+
 func _SettingNameToHumanReadable(setting_name : String) -> String:
 	var last_idx : int = setting_name.find_last("/")
 	if last_idx >= 0:
@@ -80,6 +91,18 @@ func _BuildList() -> void:
 				tree_node.set_hide_root(true)
 			else:
 				_ClearList()
+			
+			var header : TreeItem = tree_node.create_item(_root)
+			header.set_selectable(COLUMN_DESCRIPTION, false)
+			header.set_selectable(COLUMN_INPUT_KEY, false)
+			header.set_selectable(COLUMN_INPUT_MOUSEBUTTON, false)
+			header.set_selectable(COLUMN_INPUT_PAD_AXIS, false)
+			header.set_selectable(COLUMN_INPUT_PAD_BUTTON, false)
+			
+			header.set_icon(COLUMN_INPUT_KEY, preload("res://addons/eim/icons/input_keyboard.svg"))
+			header.set_icon(COLUMN_INPUT_MOUSEBUTTON, preload("res://addons/eim/icons/input_mouse.svg"))
+			header.set_icon(COLUMN_INPUT_PAD_AXIS, preload("res://addons/eim/icons/input_joypad_axii.svg"))
+			header.set_icon(COLUMN_INPUT_PAD_BUTTON, preload("res://addons/eim/icons/input_joypad_buttons.svg"))
 			
 			for ainfo in alist:
 				var action = ProjectSettings.get_setting(ainfo.name)
@@ -188,11 +211,13 @@ func _ClearList() -> void:
 	if _root == null:
 		return
 	
+	_ClearLastItem()
 	var item : TreeItem = _root.get_children()
 	if item != null:
 		_root.remove_child(item)
 		item.free()
 		_ClearList()
+
 
 func _UpdateColumnSpacing() -> void:
 	tree_node.set_column_min_width(COLUMN_DESCRIPTION, rect_size.x * (1.0 - (input_name_spacing * 4)))
@@ -247,15 +272,30 @@ func _SetupTheme() -> void:
 								tree_node.get_stylebox(prop_name, _THEME_TYPE_NAME)
 							)
 
+func _GetInputOrColumnClass(event : InputEvent, column : int) -> String:
+	if event is InputEvent:
+		return event.get_class()
+	match column:
+		COLUMN_INPUT_KEY:
+			return "InputEventKey"
+		COLUMN_INPUT_MOUSEBUTTON:
+			return "InputEventMouseButton"
+		COLUMN_INPUT_PAD_AXIS:
+			return "InputEventJoypadAxis"
+		COLUMN_INPUT_PAD_BUTTON:
+			return "InputEventJoypadButton"
+	return ""
 
-func _ResetLastItem() -> void:
-	if _last_selected.item != null:
-		_last_selected.item.clear_custom_bg_color(_last_selected.column)
+func _ClearLastItem() -> void:
+	_last_selected.item = null
+	_last_selected.column = -1
 
 func _SetLastItem(item : TreeItem, column : int) -> void:
-	_ResetLastItem()
-	_last_selected.item = item
-	_last_selected.column = column
+	if item != null and column >= 0:
+		_last_selected.item = item
+		_last_selected.column = column
+	else:
+		_ClearLastItem()
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -265,20 +305,48 @@ func _SetLastItem(item : TreeItem, column : int) -> void:
 # -------------------------------------------------------------------------
 # Handler Methods
 # -------------------------------------------------------------------------
+func _on_input_captured(event, imd) -> void:
+	remove_child(imd)
+	imd.queue_free()
+	if _last_selected.item != null and _last_selected.column >= 0:
+		var meta = _last_selected.item.get_metadata(_last_selected.column)
+		var meta_class : String = _GetInputOrColumnClass(meta, _last_selected.column)
+		if meta_class == event.get_class():
+			var action_name = _last_selected.item.get_metadata(COLUMN_DESCRIPTION)
+			if meta != null:
+				EIM.replace_group_action_input(group_name, action_name, meta, event)
+			else:
+				EIM.add_input_to_group_action(group_name, action_name, event)
+			_BuildList() # This is a little ham-fisted.
+		else:
+			print("Input Type Mismatch")
+	else:
+		print("Missing selected input")
+
+
+func _on_input_canceled(imd) -> void:
+	remove_child(imd)
+	imd.queue_free()
+	_ClearLastItem()
+
+
 func _on_focus_entered() -> void:
 	if _root == null:
 		return
 	
-	var item : TreeItem = _root.get_children()
-	if item:
-		item = item.get_next()
+	if _last_selected.item != null and _last_selected.column >= 0:
+		_last_selected.item.select(_last_selected.column)
+	else:
+		var item : TreeItem = _root.get_children()
 		if item:
-			item.select(1)
+			item = item.get_next()
+			if item:
+				item.select(1)
+	tree_node.ensure_cursor_is_visible()
 
 func _on_focus_exited() -> void:
 	if _last_selected.item != null:
 		_last_selected.item.deselect(_last_selected.column)
-	_on_nothing_selected()
 
 
 func _on_item_activated() -> void:
@@ -290,8 +358,17 @@ func _on_item_activated() -> void:
 		if Engine.editor_hint:
 			print("Input Mapping disabled in editor.")
 		else:
-			pass
-		_on_nothing_selected()
+			var iclass : String = _GetInputOrColumnClass(meta, column)
+			match iclass:
+				"InputEventKey":
+					_WatchForInput(0)
+				"InputEventMouseButton":
+					_WatchForInput(1)
+				"InputEventJoypadMotion":
+					_WatchForInput(2)
+				"InputEventJoypadButton":
+					_WatchForInput(3)
+
 
 func _on_item_selected() -> void:
 	var item : TreeItem = tree_node.get_selected()
@@ -299,13 +376,8 @@ func _on_item_selected() -> void:
 		var column : int = tree_node.get_selected_column()
 		if item.is_selectable(column):
 			_SetLastItem(item, column)
-		else:
-			_on_nothing_selected()
 	else:
-		print("No Item")
+		_ClearLastItem()
 
 func _on_nothing_selected() -> void:
-	if _last_selected.item != null:
-		_ResetLastItem()
-	_last_selected.item = null
-	_last_selected.column = -1
+	_ClearLastItem()

@@ -24,10 +24,15 @@ func _ready() -> void:
 
 func _unhandled_input(event) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		get_tree().quit()
-	elif event is InputEventKey:
-		if event.physical_scancode == KEY_O and event.is_pressed() and not event.is_echo():
-			emit_signal("ui_toggle_requested", "Options")
+		print("Cancel call")
+		if get_tree().paused:
+			get_tree().paused = false
+			emit_signal("ui_requested", "")
+		else:
+			get_tree().quit()
+	elif event.is_action_pressed("option_toggle"):
+		get_tree().paused = not get_tree().paused # TODO: Figure out a better way to pause
+		emit_signal("ui_toggle_requested", "Options")
 
 # -------------------------------------------------------------------------
 # Private Methods

@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://addons/eim/ui/GroupSelector/GroupSelector.gd" type="Script" id=1]
+
+[node name="GroupSelector" type="HBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+
+[node name="Label" type="Label" parent="."]
+margin_top = 533.0
+margin_right = 85.0
+margin_bottom = 547.0
+text = "Input Group: "
+
+[node name="GroupList" type="MenuButton" parent="."]
+margin_left = 89.0
+margin_right = 101.0
+margin_bottom = 1080.0
+flat = false
