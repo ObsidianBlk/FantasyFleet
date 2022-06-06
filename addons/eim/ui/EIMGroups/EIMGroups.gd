@@ -49,8 +49,8 @@ func _ready() -> void:
 	tree_node.set_column_expand(7, false)
 	tree_node.set_column_min_width(7, 18)
 	
-	EIM.connect("eim_initialized", self, "_on_eim_initialized")
-	EIM.connect("eim_deactivated", self, "_on_eim_deactivated")
+	EIM.connect("initialized", self, "_on_eim_initialized")
+	EIM.connect("deconstructed", self, "_on_eim_deconstructed")
 	tree_node.connect("button_pressed", self, "_on_tree_button_pressed")
 	tree_node.connect("item_edited", self, "_on_item_edited")
 	tree_node.connect("item_selected", self, "_on_item_selected")
@@ -182,7 +182,7 @@ func _RefreshInputList() -> void:
 func _on_eim_initialized(proj_name : String) -> void:
 	call_deferred("_BuildTree")
 
-func _on_eim_deactivated() -> void:
+func _on_eim_deconstructed() -> void:
 	_ClearTree()
 
 func _on_tree_button_pressed(item : TreeItem, col : int, id : int) -> void:

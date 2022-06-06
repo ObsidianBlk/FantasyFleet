@@ -32,7 +32,6 @@ _global_script_class_icons={
 
 [FF]
 
-ei_groups_list=[ "UI_Actions", "basic_controls" ]
 ei_groups/UI_Actions={
 "actions": [ {
 "desc": "",
@@ -101,20 +100,23 @@ ei_groups/basic_controls={
 } ],
 "unique_inputs": true
 }
+ei_groups/ui_actions={
+"actions": [  ],
+"unique_inputs": false
+}
 
 [application]
 
 config/name="Fantasy Fleet"
 run/main_scene="res://Scenes/World.tscn"
 config/icon="res://icon.png"
-config/eps_name="FF"
 
 [autoload]
 
-EIM="*res://addons/eim/scripts/auto/EIM.gd"
 Utils="*res://Scripts/Auto/Utils.gd"
 Game="*res://Scripts/Auto/Game.gd"
 HexMap="*res://Scripts/Auto/HexMap.gd"
+EIM="*res://addons/eim/scripts/auto/EIM.gd"
 
 [display]
 
@@ -123,7 +125,7 @@ window/size/height=1080
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/eim/plugin.cfg", "res://addons/imrp/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/imrp/plugin.cfg", "res://addons/uib/plugin.cfg" )
 
 [input]
 

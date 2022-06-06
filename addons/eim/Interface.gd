@@ -38,55 +38,55 @@ onready var proj_btn_node : Button = $UnenabledUI/VBC/Project/Enable
 # Override Methods
 # -------------------------------------------------------------------------
 func _ready() -> void:
-	EIM.connect("eim_initialized", self, "_on_eim_initialized")
-	EIM.connect("eim_deactivated", self, "_on_eim_deactivated")
+	EIM.connect("initialized", self, "_on_eim_initialized")
+	EIM.connect("deconstructed", self, "_on_eim_deconstructed")
 	_CheckUI()
 
 # -------------------------------------------------------------------------
 # Private Methods
 # -------------------------------------------------------------------------
 func _CheckUI() -> void:
-	if EIM.initialize():
+	if EIM.get_project_name() != "":
 		_on_eim_initialized("")
 	else:
-		_on_eim_deactivated()
+		_on_eim_deconstructed()
 
 
 
-func _InitializeEIM(proj_name : String, initialize_default_inputs : bool) -> void:
-	if not proj_name.is_valid_identifier():
-		return
-	if ProjectSettings.has_setting(EIM.SETTINGS_NAME_VAR):
-		printerr("WARNING: EIM already appears initialized, or required custom setting name created outside EIM control.")
-		return
-	
-	if ProjectSettings.save_custom("project_original.godot") != OK:
-		printerr("EIM ERROR: Failed to save \"project_original.godot\" file. Canceling EIM initialization.")
-		return
-	
-	ProjectSettings.set_setting(EIM.SETTINGS_NAME_VAR, proj_name)
-	ProjectSettings.set_setting(proj_name + EIM.PROP_EI_GROUP_LIST, [])
-	if EIM.initialize():
-		if initialize_default_inputs:
-			if EIM.set_group("UI_Actions", false):
-				for action_name in DEFAULT_ACTIONS:
-					EIM.add_action_to_group("UI_Actions", action_name)
-		ProjectSettings.save()
-
-
-func _DeconstructEIM(force : bool = false) -> void:
-	var proj_name = EIM.get_project_name()
-	if not force and (proj_name == "" or not proj_name.is_valid_identifier()):
-		printerr("EIM ERROR: Deconstruction of EIM failed. Project name invalid.")
-		return
-	
-	var glist = EIM.get_group_list()
-	for group_name in glist:
-		EIM.drop_group(group_name)
-	ProjectSettings.set_setting(proj_name + EIM.PROP_EI_GROUP_LIST, null)
-	ProjectSettings.set_setting(EIM.SETTINGS_NAME_VAR, null)
-	EIM.initialize()
-	ProjectSettings.save()
+#func _InitializeEIM(proj_name : String, initialize_default_inputs : bool) -> void:
+#	if not proj_name.is_valid_identifier():
+#		return
+#	if ProjectSettings.has_setting(EIM.SETTINGS_NAME_VAR):
+#		printerr("WARNING: EIM already appears initialized, or required custom setting name created outside EIM control.")
+#		return
+#
+#	if ProjectSettings.save_custom("project_original.godot") != OK:
+#		printerr("EIM ERROR: Failed to save \"project_original.godot\" file. Canceling EIM initialization.")
+#		return
+#
+#	ProjectSettings.set_setting(EIM.SETTINGS_NAME_VAR, proj_name)
+#	ProjectSettings.set_setting(proj_name + EIM.PROP_EI_GROUP_LIST, [])
+#	if EIM.initialize():
+#		if initialize_default_inputs:
+#			if EIM.set_group("UI_Actions", false):
+#				for action_name in DEFAULT_ACTIONS:
+#					EIM.add_action_to_group("UI_Actions", action_name)
+#		ProjectSettings.save()
+#
+#
+#func _DeconstructEIM(force : bool = false) -> void:
+#	var proj_name = EIM.get_project_name()
+#	if not force and (proj_name == "" or not proj_name.is_valid_identifier()):
+#		printerr("EIM ERROR: Deconstruction of EIM failed. Project name invalid.")
+#		return
+#
+#	var glist = EIM.get_group_list()
+#	for group_name in glist:
+#		EIM.drop_group(group_name)
+#	ProjectSettings.set_setting(proj_name + EIM.PROP_EI_GROUP_LIST, null)
+#	ProjectSettings.set_setting(EIM.SETTINGS_NAME_VAR, null)
+#	EIM.initialize()
+#	ProjectSettings.save()
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -102,7 +102,7 @@ func _on_eim_initialized(proj_name : String) -> void:
 		unenabledui_node.visible = false
 		ui_node.visible = true
 
-func _on_eim_deactivated() -> void:
+func _on_eim_deconstructed() -> void:
 	if unenabledui_node and ui_node:
 		ui_node.visible = false
 		unenabledui_node.visible = true
@@ -114,11 +114,14 @@ func _on_Project_LineEdit_text_changed(new_text : String) -> void:
 func _on_Project_Enable_pressed() -> void:
 	if proj_line_node.text == "" or not proj_line_node.text.is_valid_identifier():
 		return # Technically, this should never be a worry, but better safe than sorry.
-	_InitializeEIM(proj_line_node.text, true)
+	EIM.initialize_eim(proj_line_node.text, true)
+	#_InitializeEIM(proj_line_node.text, true)
 	_on_eim_initialized("")
 
 func _on_disable_eim_pressed():
-	_DeconstructEIM()
+	EIM.deconstruct_eim()
+	_on_eim_deconstructed()
+	#_DeconstructEIM()
 
 func _on_save_project_settings_pressed():
 	ProjectSettings.save()
