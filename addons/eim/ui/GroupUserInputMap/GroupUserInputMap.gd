@@ -83,6 +83,9 @@ func _SettingNameToHumanReadable(setting_name : String) -> String:
 	return setting_name.replace("_", " ").capitalize()
 
 func _BuildList() -> void:
+	if not tree_node:
+		return
+	
 	if group_name.is_valid_identifier():
 		var alist : Array = EIM.get_group_action_list(group_name)
 		if alist.size() > 0:
@@ -105,8 +108,7 @@ func _BuildList() -> void:
 			header.set_icon(COLUMN_INPUT_PAD_BUTTON, preload("res://addons/eim/icons/input_joypad_buttons.svg"))
 			
 			for ainfo in alist:
-				var action = ProjectSettings.get_setting(ainfo.name)
-				if not (typeof(action) == TYPE_DICTIONARY and "events" in action):
+				if not InputMap.has_action(ainfo.name):
 					continue
 				
 				var item = tree_node.create_item(_root)
@@ -117,7 +119,7 @@ func _BuildList() -> void:
 					item.set_text(COLUMN_DESCRIPTION, _SettingNameToHumanReadable(ainfo.name))
 				item.set_selectable(0, false)
 				
-				for event in action.events:
+				for event in InputMap.get_action_list(ainfo.name):
 					var column : int = -1
 					var text : String = ""
 					match event.get_class():
@@ -205,6 +207,8 @@ func _BuildList() -> void:
 					if column >= 0:
 						item.set_text(column, text)
 						item.set_metadata(column, event)
+						if not EIM.is_group_action_inputs_unique(group_name, ainfo.name):
+							item.set_custom_bg_color(column, Color(1,0,0), true)
 
 
 func _ClearList() -> void:
@@ -316,7 +320,7 @@ func _on_input_captured(event, imd) -> void:
 			if meta != null:
 				EIM.replace_group_action_input(group_name, action_name, meta, event)
 			else:
-				EIM.add_input_to_group_action(group_name, action_name, event)
+				EIM.add_group_action_input(group_name, action_name, event)
 			_BuildList() # This is a little ham-fisted.
 		else:
 			print("Input Type Mismatch")

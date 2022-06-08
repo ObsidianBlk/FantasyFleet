@@ -22,6 +22,7 @@ var _tree_root : TreeItem = null
 onready var tree_node : Tree = $Groups/Tree
 
 onready var gc_line_node : LineEdit = $Groups/GroupCreator/LineEdit
+onready var gc_uniquecheck_node : CheckBox = $Groups/GroupCreator/UniqueCheck
 onready var gc_add_node : Button = $Groups/GroupCreator/AddGroup
 
 onready var action_list_node : ItemList = $Inputs/ItemList
@@ -168,8 +169,9 @@ func _RefreshInputList() -> void:
 	var pspl : Array = ProjectSettings.get_property_list()
 	for prop in pspl:
 		if prop.name.begins_with("input/"):
-			if not EIM.is_action_assigned_group(prop.name):
-				action_list_node.add_item(prop.name)
+			var action_name : String = prop.name.substr("input/".length())
+			if not EIM.is_action_assigned_group(action_name):
+				action_list_node.add_item(action_name)
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -180,6 +182,7 @@ func _RefreshInputList() -> void:
 # Handler Methods
 # -------------------------------------------------------------------------
 func _on_eim_initialized(proj_name : String) -> void:
+	print("EIMGroups - Initialized")
 	call_deferred("_BuildTree")
 
 func _on_eim_deconstructed() -> void:
@@ -222,7 +225,7 @@ func _on_groupcreator_text_changed(text : String) -> void:
 
 
 func _on_group_creator_add_pressed() -> void:
-	if EIM.set_group(gc_line_node.text):
+	if EIM.set_group(gc_line_node.text, gc_uniquecheck_node.pressed):
 		_AddGroupToTree(gc_line_node.text)
 		gc_line_node.text = ""
 		gc_add_node.disabled = true

@@ -15,43 +15,37 @@ size_flags_horizontal = 3
 
 [node name="GroupCreator" type="HBoxContainer" parent="Groups"]
 margin_right = 958.0
-margin_bottom = 40.0
+margin_bottom = 24.0
 size_flags_horizontal = 3
 
 [node name="Label" type="Label" parent="Groups/GroupCreator"]
-margin_top = 13.0
+margin_top = 5.0
 margin_right = 92.0
-margin_bottom = 27.0
+margin_bottom = 19.0
 text = "Create Group: "
 
 [node name="LineEdit" type="LineEdit" parent="Groups/GroupCreator"]
 margin_left = 96.0
-margin_right = 738.0
-margin_bottom = 40.0
+margin_right = 794.0
+margin_bottom = 24.0
 size_flags_horizontal = 3
 placeholder_text = "New Group Name"
 
-[node name="Label2" type="Label" parent="Groups/GroupCreator"]
-margin_left = 742.0
-margin_top = 13.0
-margin_right = 837.0
-margin_bottom = 27.0
-text = "Unique Inputs:"
-
-[node name="UniqueCheck" type="CheckButton" parent="Groups/GroupCreator"]
-margin_left = 841.0
+[node name="UniqueCheck" type="CheckBox" parent="Groups/GroupCreator"]
+margin_left = 798.0
 margin_right = 917.0
-margin_bottom = 40.0
+margin_bottom = 24.0
+text = "Unique Inputs"
 
 [node name="AddGroup" type="Button" parent="Groups/GroupCreator"]
 margin_left = 921.0
 margin_right = 958.0
-margin_bottom = 40.0
+margin_bottom = 24.0
 disabled = true
 text = "Add"
 
 [node name="Tree" type="Tree" parent="Groups"]
-margin_top = 44.0
+margin_top = 28.0
 margin_right = 958.0
 margin_bottom = 1080.0
 size_flags_vertical = 3
@@ -84,7 +78,7 @@ margin_top = 26.0
 margin_right = 958.0
 margin_bottom = 154.0
 rect_min_size = Vector2( 0, 128 )
-items = [ "input/game_up", null, false, "input/game_down", null, false, "input/game_left", null, false, "input/game_right", null, false, "input/game_shift", null, false, "input/game_ctrl", null, false, "input/game_view_toggle", null, false ]
+items = [ "game_up", null, false, "game_down", null, false, "game_left", null, false, "game_right", null, false, "game_shift", null, false, "game_ctrl", null, false, "game_view_toggle", null, false, "option_toggle", null, false ]
 
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="pressed" from="Inputs/Refresh/Button" to="." method="_on_inputs_refresh_pressed"]

@@ -22,4 +22,5 @@ script = ExtResource( 1 )
 margin_right = 40.0
 margin_bottom = 40.0
 theme = SubResource( 2 )
+custom_styles/selected_focus = SubResource( 1 )
 columns = 5

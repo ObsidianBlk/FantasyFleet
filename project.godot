@@ -32,77 +32,74 @@ _global_script_class_icons={
 
 [FF]
 
-ei_groups/UI_Actions={
+ei_groups_list=[ "ui_actions", "basic_actions" ]
+ei_groups/ui_actions={
 "actions": [ {
 "desc": "",
-"name": "input/ui_accept"
+"name": "ui_accept"
 }, {
 "desc": "",
-"name": "input/ui_cancel"
+"name": "ui_cancel"
 }, {
 "desc": "",
-"name": "input/ui_down"
+"name": "ui_down"
 }, {
 "desc": "",
-"name": "input/ui_end"
+"name": "ui_end"
 }, {
 "desc": "",
-"name": "input/ui_focus_next"
+"name": "ui_focus_next"
 }, {
 "desc": "",
-"name": "input/ui_focus_prev"
+"name": "ui_focus_prev"
 }, {
 "desc": "",
-"name": "input/ui_home"
+"name": "ui_home"
 }, {
 "desc": "",
-"name": "input/ui_left"
+"name": "ui_left"
 }, {
 "desc": "",
-"name": "input/ui_page_down"
+"name": "ui_page_down"
 }, {
 "desc": "",
-"name": "input/ui_page_up"
+"name": "ui_page_up"
 }, {
 "desc": "",
-"name": "input/ui_right"
+"name": "ui_right"
 }, {
 "desc": "",
-"name": "input/ui_select"
+"name": "ui_select"
 }, {
 "desc": "",
-"name": "input/ui_up"
+"name": "ui_up"
 } ],
 "unique_inputs": false
 }
-ei_groups/basic_controls={
+ei_groups/basic_actions={
 "actions": [ {
-"desc": "UP",
-"name": "input/game_up"
+"desc": "",
+"name": "game_up"
 }, {
-"desc": "LEFT",
-"name": "input/game_left"
+"desc": "",
+"name": "game_down"
 }, {
-"desc": "DOWN",
-"name": "input/game_down"
+"desc": "",
+"name": "game_left"
 }, {
-"desc": "RIGHT",
-"name": "input/game_right"
+"desc": "",
+"name": "game_right"
 }, {
-"desc": "Shift",
-"name": "input/game_shift"
+"desc": "",
+"name": "game_shift"
 }, {
-"desc": "Control",
-"name": "input/game_ctrl"
+"desc": "",
+"name": "game_ctrl"
 }, {
-"desc": "View Toggle",
-"name": "input/game_view_toggle"
+"desc": "",
+"name": "game_view_toggle"
 } ],
 "unique_inputs": true
-}
-ei_groups/ui_actions={
-"actions": [  ],
-"unique_inputs": false
 }
 
 [application]
@@ -110,6 +107,7 @@ ei_groups/ui_actions={
 config/name="Fantasy Fleet"
 run/main_scene="res://Scenes/World.tscn"
 config/icon="res://icon.png"
+config/eps_name="FF"
 
 [autoload]
 
@@ -125,7 +123,7 @@ window/size/height=1080
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/imrp/plugin.cfg", "res://addons/uib/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/eim/plugin.cfg", "res://addons/imrp/plugin.cfg" )
 
 [input]
 

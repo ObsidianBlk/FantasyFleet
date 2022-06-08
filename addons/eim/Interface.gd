@@ -116,11 +116,11 @@ func _on_Project_Enable_pressed() -> void:
 		return # Technically, this should never be a worry, but better safe than sorry.
 	EIM.initialize_eim(proj_line_node.text, true)
 	#_InitializeEIM(proj_line_node.text, true)
-	_on_eim_initialized("")
+	#_on_eim_initialized("")
 
 func _on_disable_eim_pressed():
 	EIM.deconstruct_eim()
-	_on_eim_deconstructed()
+	#_on_eim_deconstructed()
 	#_DeconstructEIM()
 
 func _on_save_project_settings_pressed():

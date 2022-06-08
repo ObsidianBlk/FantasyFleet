@@ -6,6 +6,7 @@ extends Node
 # -------------------------------------------------------------------------
 signal initialized(project_name)
 signal deconstructed()
+signal active_joypad_changed(device, device_name)
 
 # -------------------------------------------------------------------------
 # Constants
@@ -17,12 +18,12 @@ const SETTINGS_NAME_VAR : String = "application/config/eps_name"
 # ---
 # SUBPROP_* - A grouping for properties, but not a direct property value.
 const SUBPROP_EI_GROUPS : String = "/ei_groups/"
+const SUBPROP_INPUT : String = "input/"
 
 # ---
 # PROP_* - A direct property value path.
 const PROP_EI_GROUP_LIST : String = "/ei_groups_list"
 
-const INPUT_SUBPROP : String = "inputs/"
 const DEFAULT_ACTIONS : PoolStringArray = PoolStringArray([
 	"ui_accept",
 	"ui_cancel",
@@ -43,7 +44,14 @@ const DEFAULT_ACTIONS : PoolStringArray = PoolStringArray([
 # -------------------------------------------------------------------------
 # Variables
 # -------------------------------------------------------------------------
+var _active_joypad_id : int = 0
+var _favored_joypad_name : String = ""
 
+# -------------------------------------------------------------------------
+# Override Methods
+# -------------------------------------------------------------------------
+func _ready() -> void:
+	Input.connect("joy_connection_changed", self, "_on_joy_connection_changed")
 
 # -------------------------------------------------------------------------
 # Private Methods
@@ -54,6 +62,14 @@ func _FindDataAction(data : Dictionary, action_name : String) -> int:
 			return i
 	return -1
 
+func _IEKScancode(e : InputEventKey) -> int:
+	if e.scancode > 0:
+		return e.scancode
+	elif e.physical_scancode > 0:
+		var code_string = OS.get_scancode_string(e.physical_scancode)
+		return OS.find_scancode_from_string(code_string)
+	return -1
+
 func _AreActionsUnique(action_name1 : String, action_name2 : String) -> bool:
 	if InputMap.has_action(action_name1) and InputMap.has_action(action_name2):
 		for ae1 in InputMap.get_action_list(action_name1):
@@ -61,7 +77,7 @@ func _AreActionsUnique(action_name1 : String, action_name2 : String) -> bool:
 				if ae1.get_class() == ae2.get_class():
 					match ae1.get_class():
 						"InputEventKey":
-							if ae1.scancode == ae2.scancode and ae1.physical_scancode == ae2.physical_scancode:
+							if _IEKScancode(ae1) == _IEKScancode(ae2):
 								return false
 						"InputEventMouseButton":
 							if ae1.button_index == ae2.button_index:
@@ -74,6 +90,24 @@ func _AreActionsUnique(action_name1 : String, action_name2 : String) -> bool:
 								return false
 					return true
 	return false
+
+func _GetProjectSettingsAction(action_name : String):
+	if not action_name.begins_with(SUBPROP_INPUT):
+		action_name = SUBPROP_INPUT + action_name
+	if ProjectSettings.has_setting(action_name):
+		var action = ProjectSettings.get_setting(action_name)
+		if typeof(action) == TYPE_DICTIONARY:
+			return action
+	return null
+
+
+func _UpdateJoypadActions() -> void:
+	var actions : Array = InputMap.get_actions()
+	for action in actions:
+		var ielist : Array = InputMap.get_action_list(action)
+		for ie in ielist:
+			if ie is InputEventJoypadButton:
+				ie.device = _active_joypad_id
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -90,10 +124,10 @@ func initialize_eim(project_name : String, initialize_default_inputs : bool) -> 
 			printerr("EIM Initilization failed. Required setting already exists.")
 			return ERR_DUPLICATE_SYMBOL
 	else:
-		var err : int = ProjectSettings.save_custom("project_original.godot")
-		if err != OK:
-			printerr("EIM ERROR: Failed to save \"project_original.godot\" file. Canceling EIM initialization.")
-			return err
+#		var err : int = ProjectSettings.save_custom("project_original.godot")
+#		if err != OK:
+#			printerr("EIM ERROR: Failed to save \"project_original.godot\" file. Canceling EIM initialization.")
+#			return err
 		
 		ProjectSettings.set_setting(SETTINGS_NAME_VAR, project_name)
 		ProjectSettings.set_setting(project_name + PROP_EI_GROUP_LIST, [])
@@ -101,7 +135,11 @@ func initialize_eim(project_name : String, initialize_default_inputs : bool) -> 
 			if set_group("ui_actions", false):
 				for action_name in DEFAULT_ACTIONS:
 					add_action_to_group("ui_actions", action_name)
-		return ProjectSettings.save()
+		var res : int = ProjectSettings.save()
+		if res != OK:
+			deconstruct_eim()
+			return res
+		emit_signal("initialized", project_name)
 	return OK
 
 func deconstruct_eim() -> int:
@@ -117,6 +155,7 @@ func deconstruct_eim() -> int:
 	ProjectSettings.set_setting(project_name + PROP_EI_GROUP_LIST, null)
 	ProjectSettings.set_setting(SETTINGS_NAME_VAR, null)
 	ProjectSettings.save()
+	emit_signal("deconstructed")
 	
 	return OK
 
@@ -190,7 +229,7 @@ func are_group_inputs_unique(group_name : String) -> bool:
 func get_group_list() -> Array:
 	var project_name : String = get_project_name()
 	if project_name != "":
-		if not ProjectSettings.has_setting(project_name + PROP_EI_GROUP_LIST):
+		if ProjectSettings.has_setting(project_name + PROP_EI_GROUP_LIST):
 			return ProjectSettings.get_setting(project_name + PROP_EI_GROUP_LIST)
 	return []
 
@@ -204,9 +243,9 @@ func add_action_to_group(group_name : String, action_name : String) -> bool:
 		printerr("EIM ERROR: Extended Input Group Name identifier, \"", group_name, "\" invalid.")
 		return false
 	
-	if not ProjectSettings.has_setting(INPUT_SUBPROP + action_name):
+	var action = _GetProjectSettingsAction(action_name)
+	if action == null:
 		return false
-	var action = ProjectSettings.get_setting(action_name)
 	
 	
 	var key = project_name + SUBPROP_EI_GROUPS + group_name
@@ -281,9 +320,6 @@ func get_group_action_list(group_name : String) -> Array:
 				adlist.append({"name":adat.name, "desc":adat.desc})
 	return adlist
 
-# -----------------------------------------------------------------------------
-# Runtime Public Methods
-# -----------------------------------------------------------------------------
 func is_action_assigned_group(action_name : String) -> bool:
 	var glist = get_group_list()
 	for group_name in glist:
@@ -348,7 +384,9 @@ func replace_group_action_input(group_name : String, action_name : String, old_i
 			# NOTE: Assuming modification in-place will work here.
 			match event.get_class():
 				"InputEventKey":
-					if event.scancode == old_input.scancode and event.physical_scancode == old_input.physical_scancode:
+					var old_scancode = _IEKScancode(old_input)
+					var e_scancode = _IEKScancode(event)
+					if e_scancode == old_scancode:
 						event.scancode = new_input.scancode
 						event.physical_scancode = new_input.physical_scancode
 				"InputEventMouseButton":
@@ -371,7 +409,9 @@ func action_has_input(action_name : String, input : InputEvent) -> bool:
 		if event.get_class() == input_class:
 			match input_class:
 				"InputEventKey":
-					if event.scancode == input.scancode and event.physical_scancode == input.physical_scancode:
+					var i_scancode = _IEKScancode(input)
+					var e_scancode = _IEKScancode(event)
+					if e_scancode == i_scancode:
 						return true
 				"InputEventMouseButton":
 					if event.button_index == input.button_index:
@@ -408,4 +448,45 @@ func action_has_joypad_axii_inputs(action_name : String) -> bool:
 func reset_actions_to_default() -> void:
 	InputMap.load_from_globals()
 
+# -----------------------------------------------------------------------------
+# Joypad-Related Public Methods
+# -----------------------------------------------------------------------------
+
+func get_joypad_list() -> Array:
+	var joys : Array = []
+	var conjoy : Array = Input.get_connected_joypads()
+	for did in conjoy:
+		joys.append({
+			"id": did,
+			"name": Input.get_joy_name(did)
+		})
+	return joys
+
+func set_active_joypad_id(idx : int) -> void:
+	if Input.get_joy_name(idx) != "":
+		_active_joypad_id = idx
+		_UpdateJoypadActions()
+		emit_signal("active_joypad_changed", _active_joypad_id, Input.get_joy_name(_active_joypad_id))
+
+func get_active_joypad_id() -> int:
+	return _active_joypad_id
+
+func get_active_joypad_name() -> String:
+	return Input.get_joy_name(_active_joypad_id)
+
+func set_active_joypad_as_favored() -> void:
+	_favored_joypad_name = Input.get_joy_name(_active_joypad_id)
+
+func set_joypad_to_first_identified() -> bool:
+	var conjoy : Array = Input.get_connected_joypads()
+	if conjoy.size() > 0:
+		set_active_joypad_id(conjoy[0])
+		return true
+	return false
+
+func _on_joy_connection_changed(device_id : int, connected : bool) -> void:
+	if connected:
+		var joy_name : String = Input.get_joy_name(device_id)
+		if joy_name == _favored_joypad_name:
+			set_active_joypad_id(device_id) 
 

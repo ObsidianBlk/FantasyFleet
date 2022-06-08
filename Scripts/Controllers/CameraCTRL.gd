@@ -111,15 +111,16 @@ func _unhandled_input(event) -> void:
 # Private Methods
 # -----------------------------------------------------------------------------
 func _ReadJoypadAxis() -> void:
-	var x = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_0)
-	var y = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_1)
+	var active_joypad_id : int = EIM.get_active_joypad_id()
+	var x = Input.get_joy_axis(active_joypad_id, JOY_AXIS_0)
+	var y = Input.get_joy_axis(active_joypad_id, JOY_AXIS_1)
 	if abs(x) > 0.4 or abs(y) > 0.4: # TODO: Make dead zone more configurable
 		_L_keyboard = false
 		_L_axis_strength = Vector2(x, y)
 	elif abs(x) < 0.1 and abs(y) < 0.1 and not _L_keyboard:
 		_L_axis_strength = Vector2.ZERO
-	x = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_2)
-	y = Input.get_joy_axis(Game.active_joypad_id, JOY_AXIS_3)
+	x = Input.get_joy_axis(active_joypad_id, JOY_AXIS_2)
+	y = Input.get_joy_axis(active_joypad_id, JOY_AXIS_3)
 	if abs(x) > 0.4 or abs(y) > 0.4:
 		_R_axis_strength = Vector2(x, y)
 	elif abs(x) < 0.1 and abs(y) < 0.1:
