@@ -13,7 +13,8 @@ signal active_joypad_changed(device, device_name)
 # -------------------------------------------------------------------------
 # EPS = Extended Project Settings. May create this direct plugin later,
 #   but I want to precreate this acronym.
-const SETTINGS_NAME_VAR : String = "application/config/eps_name"
+const SETTINGS_SECTION_VAR : String = "application/config/eim_project_section"
+const SETTINGS_CONF_SECTION_VAR : String = "application/config/eim_config_section"
 
 # ---
 # SUBPROP_* - A grouping for properties, but not a direct property value.
@@ -39,6 +40,8 @@ const DEFAULT_ACTIONS : PoolStringArray = PoolStringArray([
 	"ui_select",
 	"ui_up"
 ])
+
+const CONFIG_DEFAULT_SECTION_NAME : String = "Input"
 
 
 # -------------------------------------------------------------------------
@@ -118,18 +121,17 @@ func initialize_eim(project_name : String, initialize_default_inputs : bool) -> 
 	if not project_name.is_valid_identifier():
 		return ERR_INVALID_DECLARATION
 	
-	if ProjectSettings.has_setting(SETTINGS_NAME_VAR):
-		var proj = ProjectSettings.get_setting(SETTINGS_NAME_VAR)
+	if ProjectSettings.has_setting(SETTINGS_SECTION_VAR):
+		var proj = ProjectSettings.get_setting(SETTINGS_SECTION_VAR)
 		if project_name != proj:
-			printerr("EIM Initilization failed. Required setting already exists.")
+			printerr("EIM Initilization failed. Required setting \"", SETTINGS_SECTION_VAR, "\" already exists.")
 			return ERR_DUPLICATE_SYMBOL
+	if ProjectSettings.has_setting(SETTINGS_CONF_SECTION_VAR):
+		printerr("EIM Initilization failed. Required setting \"", SETTINGS_CONF_SECTION_VAR, "\" already exists.")
+		return ERR_DUPLICATE_SYMBOL
 	else:
-#		var err : int = ProjectSettings.save_custom("project_original.godot")
-#		if err != OK:
-#			printerr("EIM ERROR: Failed to save \"project_original.godot\" file. Canceling EIM initialization.")
-#			return err
-		
-		ProjectSettings.set_setting(SETTINGS_NAME_VAR, project_name)
+		ProjectSettings.set_setting(SETTINGS_SECTION_VAR, project_name)
+		ProjectSettings.set_setting(SETTINGS_CONF_SECTION_VAR, CONFIG_DEFAULT_SECTION_NAME)
 		ProjectSettings.set_setting(project_name + PROP_EI_GROUP_LIST, [])
 		if initialize_default_inputs:
 			if set_group("ui_actions", false):
@@ -153,23 +155,107 @@ func deconstruct_eim() -> int:
 	for group_name in glist:
 		drop_group(group_name)
 	ProjectSettings.set_setting(project_name + PROP_EI_GROUP_LIST, null)
-	ProjectSettings.set_setting(SETTINGS_NAME_VAR, null)
+	ProjectSettings.set_setting(SETTINGS_CONF_SECTION_VAR, null)
+	ProjectSettings.set_setting(SETTINGS_SECTION_VAR, null)
 	ProjectSettings.save()
 	emit_signal("deconstructed")
 	
 	return OK
 
-func load_from_config(conf : ConfigFile, section : String) -> void:
-	pass
 
-func save_to_config(conf : ConfigFile, section : String) -> void:
-	pass
+func load_from_config(conf : ConfigFile) -> void:
+	var section : String = get_config_section()
+	if section == "":
+		return
+	
+	if not conf.has_section(section):
+		return
+	
+	if conf.has_section_key(section, "favored_joypad_name"):
+		_favored_joypad_name = conf.get_value(section, "favored_joypad_name", "")
+	
+	var group_list : Array = get_group_list()
+	for group_name in group_list:
+		var action_list : Array = get_group_action_list(group_name)
+		for action_data in action_list:
+			if InputMap.has_action(action_data.name):
+				InputMap.action_erase_events(action_data.name)
+			else:
+				printerr("WARNING: InputMap missing action \"", action_data.name, "\" event definition.")
+				InputMap.add_action(action_data.name)
+			var key_base = "%s.%s"%[group_name, action_data.name]
+			if conf.has_section_key(section, "%s.scancode"%[key_base]):
+				var scancode : int = conf.get_value(section, "%s.scancode"%[key_base], 0)
+				if scancode > 0:
+					var event : InputEventKey = InputEventKey.new()
+					event.scancode = scancode
+					InputMap.action_add_event(action_data.name, event)
+			if conf.has_section_key(section, "%s.mouse_button"%[key_base]):
+				var id : int = conf.get_value(section, "%s.mouse_button"%[key_base], -1)
+				if id >= 0:
+					var event : InputEventMouseButton = InputEventMouseButton.new()
+					event.button_index = id
+					InputMap.action_add_event(action_data.name, event)
+			if conf.has_section_key(section, "%s.joy_axis"%[key_base]):
+				var id : int = conf.get_value(section, "%s.joy_axis"%[key_base], -1)
+				if id >= 0:
+					var event : InputEventJoypadMotion = InputEventJoypadMotion.new()
+					event.axis = id
+					InputMap.action_add_event(action_data.name, event)
+			if conf.has_section_key(section, "%s.joy_button"%[key_base]):
+				var id : int = conf.get_value(section, "%s.joy_button"%[key_base], -1)
+				if id >= 0:
+					var event : InputEventJoypadButton = InputEventJoypadButton.new()
+					event.button_index = id
+					InputMap.action_add_event(action_data.name, event)
+
+
+
+func save_to_config(conf : ConfigFile) -> void:
+	var section : String = get_config_section()
+	if section == "":
+		return
+	
+	if _favored_joypad_name != "":
+		conf.set_value(section, "favored_joypad_name", _favored_joypad_name)
+	
+	var group_list : Array = get_group_list()
+	for group_name in group_list:
+		var action_list : Array = get_group_action_list(group_name)
+		for action_data in action_list:
+			if InputMap.has_action(action_data.name):
+				var actions : Array = InputMap.get_action_list(action_data.name)
+				for action in actions:
+					match action.get_class():
+						"InputEventKey":
+							var scancode : int = _IEKScancode(action)
+							conf.set_value(section, "%s.%s.scancode"%[group_name, action_data.name], scancode)
+						"InputEventMouseButton":
+							conf.set_value(section, "%s.%s.mouse_button"%[group_name, action_data.name], action.button_index)
+						"InputEventJoypadAxis":
+							conf.set_value(section, "%s.%s.joy_axis"%[group_name, action_data.name], action.axis)
+						"InputEventJoypadButton":
+							conf.set_value(section, "%s.%s.joy_button"%[group_name, action_data.name], action.button_index)
+
 
 func get_project_name() -> String:
-	if ProjectSettings.has_setting(SETTINGS_NAME_VAR):
-		var proj = ProjectSettings.get_setting(SETTINGS_NAME_VAR)
+	if ProjectSettings.has_setting(SETTINGS_SECTION_VAR):
+		var proj = ProjectSettings.get_setting(SETTINGS_SECTION_VAR)
 		if typeof(proj) == TYPE_STRING and proj.is_valid_identifier():
 			return proj
+	return ""
+
+func set_config_section(section : String) -> bool:
+	if Engine.editor_hint and section.is_valid_identifier() and ProjectSettings.has_setting(SETTINGS_CONF_SECTION_VAR):
+		ProjectSettings.set_setting(SETTINGS_CONF_SECTION_VAR, section)
+		return true
+	return false
+
+func get_config_section() -> String:
+	if ProjectSettings.has_setting(SETTINGS_CONF_SECTION_VAR):
+		var sec = ProjectSettings.get_setting(SETTINGS_CONF_SECTION_VAR)
+		if typeof(sec) == TYPE_STRING:
+			return sec
 	return ""
 
 func set_group(group_name : String, unique_inputs : bool = true, preserve_actions : bool = false) -> bool:
@@ -308,6 +394,10 @@ func set_group_action_description(group_name : String, action_name : String, des
 		if idx >= 0:
 			data.actions[idx].desc = description
 			ProjectSettings.set_setting(key, data)
+
+func get_group_action_description(group_name : String, action_name : String) -> String:
+	# TODO: Write this method you fool!
+	return ""
 
 func get_group_action_list(group_name : String) -> Array:
 	var adlist : Array = []

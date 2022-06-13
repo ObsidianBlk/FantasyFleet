@@ -29,6 +29,7 @@ func _unhandled_input(event) -> void:
 			get_tree().paused = false
 			emit_signal("ui_requested", "")
 		else:
+			Game.save_config()
 			get_tree().quit()
 	elif event.is_action_pressed("option_toggle"):
 		get_tree().paused = not get_tree().paused # TODO: Figure out a better way to pause

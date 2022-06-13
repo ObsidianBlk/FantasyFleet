@@ -251,7 +251,8 @@ func _on_action_item_activated(idx : int):
 	var group_name : String = item.get_metadata(0)
 	var action_name : String = action_list_node.get_item_text(idx)
 	if EIM.add_action_to_group(group_name, action_name):
-		_BuildTree()
+		_AddActionToGroup(item, {"name":action_name, "desc":EIM.get_group_action_description(group_name, action_name)})
+		#_BuildTree()
 		_RefreshInputList()
 		
 

@@ -20,6 +20,8 @@ const _INPUT_ACTION_DEF = [
 	{action_name="game_view_toggle", description="Toggle 2D/3D View"}
 ]
 
+const CONFIG_PATH : String = "user://FantasyFleet.cfg"
+
 enum VIEW {MODE_2D=0, MODE_3D=1}
 
 # -------------------------------------------------------------------------
@@ -30,6 +32,7 @@ export (VIEW) var view_mode : int = VIEW.MODE_2D		setget set_view_mode
 # -------------------------------------------------------------------------
 # Variables
 # -------------------------------------------------------------------------
+var _game_config : ConfigFile = null
 
 # -------------------------------------------------------------------------
 # Onready Variables
@@ -48,7 +51,9 @@ func set_view_mode(vm : int) -> void:
 # Override Methods
 # -------------------------------------------------------------------------
 func _ready() -> void:
-	pass
+	_game_config = ConfigFile.new()
+	if _game_config.load(CONFIG_PATH) == OK:
+		EIM.load_from_config(_game_config)
 
 # -------------------------------------------------------------------------
 # Private Methods
@@ -68,6 +73,10 @@ func get_action_description(action_name : String) -> String:
 		if a.action_name == action_name:
 			return a.description
 	return ""
+
+func save_config() -> int:
+	EIM.save_to_config(_game_config)
+	return _game_config.save(CONFIG_PATH)
 
 # -------------------------------------------------------------------------
 # Handler Methods

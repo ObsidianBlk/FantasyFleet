@@ -34,6 +34,8 @@ onready var ui_node : Control = $EnabledUI
 onready var proj_line_node : LineEdit = $UnenabledUI/VBC/Project/LineEdit
 onready var proj_btn_node : Button = $UnenabledUI/VBC/Project/Enable
 
+onready var config_section_node : LineEdit = $EnabledUI/VBC/MiscEIMConfig/ConfSection/LineEdit
+
 # -------------------------------------------------------------------------
 # Override Methods
 # -------------------------------------------------------------------------
@@ -51,42 +53,8 @@ func _CheckUI() -> void:
 	else:
 		_on_eim_deconstructed()
 
-
-
-#func _InitializeEIM(proj_name : String, initialize_default_inputs : bool) -> void:
-#	if not proj_name.is_valid_identifier():
-#		return
-#	if ProjectSettings.has_setting(EIM.SETTINGS_NAME_VAR):
-#		printerr("WARNING: EIM already appears initialized, or required custom setting name created outside EIM control.")
-#		return
-#
-#	if ProjectSettings.save_custom("project_original.godot") != OK:
-#		printerr("EIM ERROR: Failed to save \"project_original.godot\" file. Canceling EIM initialization.")
-#		return
-#
-#	ProjectSettings.set_setting(EIM.SETTINGS_NAME_VAR, proj_name)
-#	ProjectSettings.set_setting(proj_name + EIM.PROP_EI_GROUP_LIST, [])
-#	if EIM.initialize():
-#		if initialize_default_inputs:
-#			if EIM.set_group("UI_Actions", false):
-#				for action_name in DEFAULT_ACTIONS:
-#					EIM.add_action_to_group("UI_Actions", action_name)
-#		ProjectSettings.save()
-#
-#
-#func _DeconstructEIM(force : bool = false) -> void:
-#	var proj_name = EIM.get_project_name()
-#	if not force and (proj_name == "" or not proj_name.is_valid_identifier()):
-#		printerr("EIM ERROR: Deconstruction of EIM failed. Project name invalid.")
-#		return
-#
-#	var glist = EIM.get_group_list()
-#	for group_name in glist:
-#		EIM.drop_group(group_name)
-#	ProjectSettings.set_setting(proj_name + EIM.PROP_EI_GROUP_LIST, null)
-#	ProjectSettings.set_setting(EIM.SETTINGS_NAME_VAR, null)
-#	EIM.initialize()
-#	ProjectSettings.save()
+func _UpdateSettings() -> void:
+	config_section_node.text = EIM.get_config_section()
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -101,6 +69,7 @@ func _on_eim_initialized(proj_name : String) -> void:
 	if unenabledui_node and ui_node:
 		unenabledui_node.visible = false
 		ui_node.visible = true
+		_UpdateSettings()
 
 func _on_eim_deconstructed() -> void:
 	if unenabledui_node and ui_node:
@@ -110,6 +79,13 @@ func _on_eim_deconstructed() -> void:
 func _on_Project_LineEdit_text_changed(new_text : String) -> void:
 	proj_btn_node.disabled = (new_text == "" or not new_text.is_valid_identifier())
 
+func _on_ConfSection_text_changed(new_text : String) -> void:
+	if new_text == "" or not new_text.is_valid_identifier():
+		var mode : String = "focus" if config_section_node.has_focus() else "normal"
+		var sb : StyleBox = null
+		if config_section_node.has_stylebox("invalid_" + mode, "EIM_LineEdit"):
+			sb = config_section_node.get_stylebox("invalid_" + mode, "EIM_LineEdit")
+		config_section_node.add_stylebox_override(mode, sb)
 
 func _on_Project_Enable_pressed() -> void:
 	if proj_line_node.text == "" or not proj_line_node.text.is_valid_identifier():
@@ -124,4 +100,9 @@ func _on_disable_eim_pressed():
 	#_DeconstructEIM()
 
 func _on_save_project_settings_pressed():
+	if config_section_node.text.is_valid_identifier():
+		EIM.set_config_section(config_section_node.text)
+	else:
+		config_section_node.text = EIM.get_config_section()
 	ProjectSettings.save()
+

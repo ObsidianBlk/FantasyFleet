@@ -76,9 +76,10 @@ icon = ExtResource( 2 )
 [node name="ItemList" type="ItemList" parent="Inputs"]
 margin_top = 26.0
 margin_right = 958.0
-margin_bottom = 154.0
+margin_bottom = 1080.0
 rect_min_size = Vector2( 0, 128 )
-items = [ "game_up", null, false, "game_down", null, false, "game_left", null, false, "game_right", null, false, "game_shift", null, false, "game_ctrl", null, false, "game_view_toggle", null, false, "option_toggle", null, false ]
+size_flags_vertical = 3
+items = [ "game_down", null, false, "game_left", null, false, "game_right", null, false, "game_shift", null, false, "game_ctrl", null, false, "game_view_toggle", null, false, "option_toggle", null, false ]
 
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="pressed" from="Inputs/Refresh/Button" to="." method="_on_inputs_refresh_pressed"]
