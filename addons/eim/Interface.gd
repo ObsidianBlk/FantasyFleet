@@ -31,6 +31,8 @@ const DEFAULT_ACTIONS : PoolStringArray = PoolStringArray([
 onready var unenabledui_node : Control = $UnenabledUI
 onready var ui_node : Control = $EnabledUI
 
+onready var save_projsettings_btn_node : Button = $EnabledUI/VBC/TopBar/SaveProjSettings
+
 onready var proj_line_node : LineEdit = $UnenabledUI/VBC/Project/LineEdit
 onready var proj_btn_node : Button = $UnenabledUI/VBC/Project/Enable
 
@@ -80,12 +82,7 @@ func _on_Project_LineEdit_text_changed(new_text : String) -> void:
 	proj_btn_node.disabled = (new_text == "" or not new_text.is_valid_identifier())
 
 func _on_ConfSection_text_changed(new_text : String) -> void:
-	if new_text == "" or not new_text.is_valid_identifier():
-		var mode : String = "focus" if config_section_node.has_focus() else "normal"
-		var sb : StyleBox = null
-		if config_section_node.has_stylebox("invalid_" + mode, "EIM_LineEdit"):
-			sb = config_section_node.get_stylebox("invalid_" + mode, "EIM_LineEdit")
-		config_section_node.add_stylebox_override(mode, sb)
+	save_projsettings_btn_node.disabled = (new_text == "" or not new_text.is_valid_identifier())
 
 func _on_Project_Enable_pressed() -> void:
 	if proj_line_node.text == "" or not proj_line_node.text.is_valid_identifier():

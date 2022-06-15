@@ -12,6 +12,35 @@ const COLUMN_INPUT_PAD_BUTTON : int = 4
 
 const _THEME_TYPE_NAME : String = "GUIM"
 
+const _BUTTON_ICON_MAP = {
+	JOY_DPAD_UP: {"GENERIC":"res://addons/eim/icons/controller/btn_dpad_UP.svg"},
+	JOY_DPAD_DOWN: {"GENERIC":"res://addons/eim/icons/controller/btn_dpad_DOWN.svg"},
+	JOY_DPAD_LEFT: {"GENERIC":"res://addons/eim/icons/controller/btn_dpad_LEFT.svg"},
+	JOY_DPAD_RIGHT: {"GENERIC":"res://addons/eim/icons/controller/btn_dpad_RIGHT.svg"},
+	JOY_BUTTON_0: {
+		"GENERIC": "res://addons/eim/icons/controller/btn_A.svg",
+		"DS": "res://addons/eim/icons/controller/btn_B.svg",
+	},
+	JOY_BUTTON_1: {
+		"GENERIC": "res://addons/eim/icons/controller/btn_B.svg",
+		"DS": "res://addons/eim/icons/controller/btn_A.svg",
+	},
+	JOY_BUTTON_2: {
+		"GENERIC": "res://addons/eim/icons/controller/btn_X.svg",
+		"DS": "res://addons/eim/icons/controller/btn_Y.svg"
+	},
+	JOY_BUTTON_3: {
+		"GENERIC": "res://addons/eim/icons/controller/btn_Y.svg",
+		"DS": "res://addons/eim/icons/controller/btn_X.svg",
+	},
+	JOY_L: {"GENERIC": "res://addons/eim/icons/controller/btn_l1.svg"},
+	JOY_L2: {"GENERIC": "res://addons/eim/icons/controller/axis_l2.svg"},
+	JOY_L3: {"GENERIC": "res://addons/eim/icons/controller/btn_L3.svg"},
+	JOY_R: {"GENERIC": "res://addons/eim/icons/controller/btn_r1.svg"},
+	JOY_R2: {"GENERIC": "res://addons/eim/icons/controller/axis_r2.svg"},
+	JOY_R3: {"GENERIC": "res://addons/eim/icons/controller/btn_r3.svg"},
+}
+
 const InputMonitorDialog = preload("res://addons/eim/ui/InputMonitorDialog/InputMonitorDialog.tscn")
 
 # -------------------------------------------------------------------------
@@ -108,8 +137,12 @@ func _BuildList() -> void:
 			header.set_icon(COLUMN_INPUT_PAD_BUTTON, preload("res://addons/eim/icons/input_joypad_buttons.svg"))
 			
 			for ainfo in alist:
-				if not InputMap.has_action(ainfo.name):
-					continue
+				if not Engine.editor_hint:
+					if not InputMap.has_action(ainfo.name):
+						continue
+				else:
+					if not ProjectSettings.has_setting("input/%s"%[ainfo.name]):
+						continue
 				
 				var item = tree_node.create_item(_root)
 				item.set_metadata(COLUMN_DESCRIPTION, ainfo.name)
@@ -119,7 +152,15 @@ func _BuildList() -> void:
 					item.set_text(COLUMN_DESCRIPTION, _SettingNameToHumanReadable(ainfo.name))
 				item.set_selectable(0, false)
 				
-				for event in InputMap.get_action_list(ainfo.name):
+				var action_list : Array = []
+				if Engine.editor_hint:
+					var action = ProjectSettings.get_setting("input/%s"%[ainfo.name])
+					if action != null:
+						action_list = action.events
+				else:
+					action_list = InputMap.get_action_list(ainfo.name)
+				
+				for event in action_list:
 					var column : int = -1
 					var text : String = ""
 					match event.get_class():
@@ -171,13 +212,13 @@ func _BuildList() -> void:
 							if item.get_metadata(COLUMN_INPUT_PAD_BUTTON) == null:
 								column = COLUMN_INPUT_PAD_BUTTON
 								match event.button_index:
-									JOY_XBOX_A:
+									JOY_BUTTON_0:
 										text = "XBox A"
-									JOY_XBOX_B:
+									JOY_BUTTON_1:
 										text = "XBox B"
-									JOY_XBOX_X:
+									JOY_BUTTON_2:
 										text = "XBox X"
-									JOY_XBOX_Y:
+									JOY_BUTTON_3:
 										text = "XBox Y"
 									JOY_SELECT:
 										text = "Select"

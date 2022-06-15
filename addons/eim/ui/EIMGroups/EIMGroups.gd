@@ -27,7 +27,11 @@ onready var gc_add_node : Button = $Groups/GroupCreator/AddGroup
 
 onready var action_list_node : ItemList = $Inputs/ItemList
 
-# -------------------------------------------------------------------------
+onready var action_filter_node : LineEdit = $Inputs/Refresh/ActionFilter/LineEdit
+onready var action_filter_beginswith : CheckBox = $Inputs/Refresh/ActionFilter/Begins
+onready var action_filter_caseless : CheckBox = $Inputs/Refresh/ActionFilter/Caseless
+
+# ------------------------------------------------------------------S-------
 # Override Methods
 # -------------------------------------------------------------------------
 func _ready() -> void:
@@ -64,6 +68,7 @@ func _ready() -> void:
 # -------------------------------------------------------------------------
 # Private Methods
 # -------------------------------------------------------------------------
+
 func _AddGroupToTree(group_name : String) -> TreeItem:
 	if _tree_root == null:
 		return null
@@ -161,6 +166,18 @@ func _ClearTree() -> void:
 		_ClearTree()
 
 
+func _ActionFilterPassed(action_name : String) -> bool:
+	if action_filter_node.text != "":
+		if action_filter_beginswith.pressed:
+			if action_filter_caseless.pressed:
+				return action_name.to_lower().begins_with(action_filter_node.text.to_lower())
+			return action_name.begins_with(action_filter_node.text)
+		else:
+			if action_filter_caseless.pressed:
+				return action_name.countn(action_filter_node.text) > 0
+			return action_name.count(action_filter_node.text) > 0
+	return true
+
 func _RefreshInputList() -> void:
 	if not action_list_node:
 		return
@@ -170,8 +187,11 @@ func _RefreshInputList() -> void:
 	for prop in pspl:
 		if prop.name.begins_with("input/"):
 			var action_name : String = prop.name.substr("input/".length())
+			if not _ActionFilterPassed(action_name):
+				continue
 			if not EIM.is_action_assigned_group(action_name):
 				action_list_node.add_item(action_name)
+
 
 # -------------------------------------------------------------------------
 # Public Methods
@@ -256,7 +276,17 @@ func _on_action_item_activated(idx : int):
 		_RefreshInputList()
 		
 
+func _on_ActionFilter_text_changed(new_text : String) -> void:
+	_RefreshInputList()
 
 func _on_visibility_changed():
 	# TODO: Not sure this is the best place/signal, but letting ride for now!
+	_RefreshInputList()
+
+
+func _on_ActionFilter_Begins_toggled(button_pressed : bool) -> void:
+	_RefreshInputList()
+
+
+func _on_ActionFilter_Caseless_toggled(button_pressed : bool) -> void:
 	_RefreshInputList()

@@ -90,7 +90,7 @@ config/name="Fantasy Fleet"
 run/main_scene="res://Scenes/World.tscn"
 config/icon="res://icon.png"
 config/eim_project_section="FF"
-config/eim_config_section="FF_Inputs"
+config/eim_config_section="Input"
 
 [autoload]
 
@@ -106,7 +106,7 @@ window/size/height=1080
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/eim/plugin.cfg", "res://addons/imrp/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/imrp/plugin.cfg" )
 
 [input]
 

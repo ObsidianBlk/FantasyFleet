@@ -73,25 +73,50 @@ func _IEKScancode(e : InputEventKey) -> int:
 		return OS.find_scancode_from_string(code_string)
 	return -1
 
+func _AreEventsUnique(ae1, ae2) -> int:
+	if ae1.get_class() == ae2.get_class():
+		match ae1.get_class():
+			"InputEventKey":
+				if _IEKScancode(ae1) == _IEKScancode(ae2):
+					return FAILED
+			"InputEventMouseButton":
+				if ae1.button_index == ae2.button_index:
+					return FAILED
+			"InputEventJoypadMotion":
+				if ae1.axis == ae2.axis:
+					return FAILED
+			"InputEventJoypadButton":
+				if ae1.button_index == ae2.button_index:
+					return FAILED
+		return OK
+	return ERR_INVALID_DATA
+
+func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String) -> bool:
+	var a1key : String = "%s%s"%[SUBPROP_INPUT, action_name1]
+	var a2key : String = "%s%s"%[SUBPROP_INPUT, action_name2]
+	if ProjectSettings.has_setting(a1key) and ProjectSettings.has_setting(a2key):
+		var action1 = ProjectSettings.get_setting(a1key)
+		var action2 = ProjectSettings.get_setting(a2key)
+		if not action1 or not action2:
+			return false
+		
+		for ae1 in action1.events:
+			for ae2 in action2.events:
+				var res : int = _AreEventsUnique(ae1, ae2)
+				if res == FAILED:
+					return false
+		return true
+	return false
+
+
 func _AreActionsUnique(action_name1 : String, action_name2 : String) -> bool:
 	if InputMap.has_action(action_name1) and InputMap.has_action(action_name2):
 		for ae1 in InputMap.get_action_list(action_name1):
 			for ae2 in InputMap.get_action_list(action_name2):
-				if ae1.get_class() == ae2.get_class():
-					match ae1.get_class():
-						"InputEventKey":
-							if _IEKScancode(ae1) == _IEKScancode(ae2):
-								return false
-						"InputEventMouseButton":
-							if ae1.button_index == ae2.button_index:
-								return false
-						"InputEventJoypadMotion":
-							if ae1.axis == ae2.axis:
-								return false
-						"InputEventJoypadButton":
-							if ae1.button_index == ae2.button_index:
-								return false
-					return true
+				var res : int = _AreEventsUnique(ae1, ae2)
+				if res == FAILED:
+					return false
+		return true
 	return false
 
 func _GetProjectSettingsAction(action_name : String):
@@ -445,8 +470,12 @@ func is_group_action_inputs_unique(group_name : String, action_name : String) ->
 	if alist.size() > 0:
 		for adata in alist:
 			if adata.name != action_name:
-				if not _AreActionsUnique(action_name, adata.name):
-					return false
+				if Engine.editor_hint:
+					if not _AreActionsUniqueEditorMode(action_name, adata.name):
+						return false
+				else:
+					if not _AreActionsUnique(action_name, adata.name):
+						return false
 	return true
 
 func add_group_action_input(group_name : String, action_name : String, input : InputEvent) -> void:
