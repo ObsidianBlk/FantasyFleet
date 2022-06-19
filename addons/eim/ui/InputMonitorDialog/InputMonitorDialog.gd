@@ -10,7 +10,7 @@ signal input_captured(event)
 # -------------------------------------------------------------------------
 # Constants and ENUMs
 # -------------------------------------------------------------------------
-enum IETYPE {Key=0, Mouse=1, JoyAxis=2, JoyButton=3}
+enum IETYPE {Key=0, Mouse=1, JoyAxis=2, JoyButton=3, JoyCombo=4}
 
 # -------------------------------------------------------------------------
 # Export Variables
@@ -51,6 +51,10 @@ func _input(event) -> void:
 				emit_signal("input_captured", event)
 		IETYPE.JoyButton:
 			if event is InputEventJoypadButton and event.is_pressed() and not event.is_echo():
+				accept_event()
+				emit_signal("input_captured", event)
+		IETYPE.JoyCombo:
+			if (event is InputEventJoypadButton and event.is_pressed() and not event.is_echo()) or (event is InputEventJoypadMotion):
 				accept_event()
 				emit_signal("input_captured", event)
 

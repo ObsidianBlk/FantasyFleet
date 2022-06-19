@@ -48,6 +48,9 @@ const InputMonitorDialog = preload("res://addons/eim/ui/InputMonitorDialog/Input
 # -------------------------------------------------------------------------
 export var group_name : String		setget set_group_name
 export (float, 0.0, 0.2) var input_name_spacing : float = 0.1
+export var enable_key_bindings : bool = true
+export var enable_mouse_bindings : bool = true
+export var enable_joypad_bindings : bool = true
 
 # -------------------------------------------------------------------------
 # Variables
@@ -76,6 +79,10 @@ func set_input_name_spacing(ins : float) -> void:
 	if ins > 0.0 and ins <= 0.2:
 		input_name_spacing = ins
 		_UpdateColumnSpacing()
+
+
+func set_enable_key_bindings(e : bool) -> void:
+	pass
 
 # -------------------------------------------------------------------------
 # Override Methods

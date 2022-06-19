@@ -22,9 +22,15 @@ const SUBPROP_EI_GROUPS : String = "/ei_groups/"
 const SUBPROP_INPUT : String = "input/"
 
 # ---
-# PROP_* - A direct property value path.
+# PROP_* - A direct property name that builds from the defined SETTINGS_SECTION_VAR value.
 const PROP_EI_GROUP_LIST : String = "/ei_groups_list"
 
+# ---
+# Config file variables
+const CONFIG_DEFAULT_SECTION_NAME : String = "Input"
+
+# ---
+# The default input actions Godot projects normally start with.
 const DEFAULT_ACTIONS : PoolStringArray = PoolStringArray([
 	"ui_accept",
 	"ui_cancel",
@@ -40,8 +46,6 @@ const DEFAULT_ACTIONS : PoolStringArray = PoolStringArray([
 	"ui_select",
 	"ui_up"
 ])
-
-const CONFIG_DEFAULT_SECTION_NAME : String = "Input"
 
 
 # -------------------------------------------------------------------------
