@@ -421,7 +421,17 @@ func set_group_action_description(group_name : String, action_name : String, des
 			ProjectSettings.set_setting(key, data)
 
 func get_group_action_description(group_name : String, action_name : String) -> String:
-	# TODO: Write this method you fool!
+	var project_name : String = get_project_name()
+	if project_name != "":
+		if group_name.is_valid_identifier():
+			var key = project_name + SUBPROP_EI_GROUPS + group_name
+			if ProjectSettings.has_setting(key):
+				var data = ProjectSettings.get_setting(key)
+				var idx : int = _FindDataAction(data, action_name)
+				if idx >= 0:
+					return data.actions[idx].desc
+		else:
+			printerr("EIM ERROR: Extended Input Group Name identifier, \"", group_name, "\" invalid.")
 	return ""
 
 func get_group_action_list(group_name : String) -> Array:
