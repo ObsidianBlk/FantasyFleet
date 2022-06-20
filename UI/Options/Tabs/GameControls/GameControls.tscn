@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://UI/Options/Tabs/GameControls/GamePadSelector.gd" type="Script" id=1]
-[ext_resource path="res://addons/eim/ui/GroupUserInputMap/GroupUserInputMap.tscn" type="PackedScene" id=2]
+[ext_resource path="res://addons/eim/ui/InputBinder/InputBinder.tscn" type="PackedScene" id=2]
 [ext_resource path="res://addons/eim/ui/GroupSelector/GroupSelector.tscn" type="PackedScene" id=3]
 
 [node name="GameControls" type="MarginContainer"]
@@ -80,11 +80,13 @@ anchor_bottom = 0.0
 margin_right = 1912.0
 margin_bottom = 20.0
 
-[node name="GroupUserInputMap" parent="VBC/InputMapScroll/VBC" instance=ExtResource( 2 )]
+[node name="InputBinder" parent="VBC/InputMapScroll/VBC" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
 margin_top = 24.0
 margin_right = 1912.0
 margin_bottom = 1030.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[connection signal="group_selected" from="VBC/InputMapScroll/VBC/GroupSelector" to="VBC/InputMapScroll/VBC/GroupUserInputMap" method="set_group_name"]
+[connection signal="group_selected" from="VBC/InputMapScroll/VBC/GroupSelector" to="VBC/InputMapScroll/VBC/InputBinder" method="set_group_name"]

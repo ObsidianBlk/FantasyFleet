@@ -2,7 +2,7 @@
 
 [ext_resource path="res://addons/eim/Interface.gd" type="Script" id=1]
 [ext_resource path="res://addons/eim/ui/EIMGroups/EIMGroups.tscn" type="PackedScene" id=2]
-[ext_resource path="res://addons/eim/ui/GroupUserInputMap/GroupUserInputMap.tscn" type="PackedScene" id=3]
+[ext_resource path="res://addons/eim/ui/InputBinder/InputBinder.tscn" type="PackedScene" id=3]
 [ext_resource path="res://addons/eim/eim.theme" type="Theme" id=4]
 [ext_resource path="res://addons/eim/scripts/IdentifierLineEdit.gd" type="Script" id=5]
 
@@ -156,7 +156,9 @@ margin_top = 564.0
 margin_right = 1904.0
 margin_bottom = 568.0
 
-[node name="GroupUserInputMap" parent="EnabledUI/VBC" instance=ExtResource( 3 )]
+[node name="InputBinder" parent="EnabledUI/VBC" instance=ExtResource( 3 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
 margin_top = 572.0
 margin_right = 1904.0
 margin_bottom = 1064.0
@@ -168,4 +170,4 @@ size_flags_vertical = 3
 [connection signal="pressed" from="EnabledUI/VBC/TopBar/SaveProjSettings" to="." method="_on_save_project_settings_pressed"]
 [connection signal="pressed" from="EnabledUI/VBC/TopBar/DisableEIM" to="." method="_on_disable_eim_pressed"]
 [connection signal="text_changed" from="EnabledUI/VBC/MiscEIMConfig/ConfSection/LineEdit" to="." method="_on_ConfSection_text_changed"]
-[connection signal="group_selected" from="EnabledUI/VBC/EIMGroups" to="EnabledUI/VBC/GroupUserInputMap" method="set_group_name"]
+[connection signal="group_selected" from="EnabledUI/VBC/EIMGroups" to="EnabledUI/VBC/InputBinder" method="set_group_name"]

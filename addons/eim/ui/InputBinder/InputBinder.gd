@@ -23,14 +23,14 @@ enum JOYVEND {XBox=0, Sony=1, Nintendo=2}
 # -----------------------------------------------------------------------------
 # Exports
 # -----------------------------------------------------------------------------
-export var group_name : String = ""
-export var joypad_lookup_group : String = "XBox"
-export var rel_action_spacing : float = 0.1
+export var group_name : String = ""									setget set_group_name
+export var joypad_lookup_group : String = "XBox"					setget set_joypad_lookup_group
+export (float, 0.01, 0.99) var rel_action_spacing : float = 0.1		setget set_rel_action_spacing
 export var display_header : bool = true
-export var enable_key_bindings : bool = true			setget set_enable_key_binding
-export var enable_mouse_bindings : bool = true			setget set_enable_mouse_binding
-export var enable_joy_bindings : bool = true			setget set_enable_joy_binding
-export var merge_joy_button_axis : bool = false			setget set_merge_joy_button_axis
+export var enable_key_bindings : bool = true						setget set_enable_key_binding
+export var enable_mouse_bindings : bool = true						setget set_enable_mouse_binding
+export var enable_joy_bindings : bool = true						setget set_enable_joy_binding
+export var merge_joy_button_axis : bool = false						setget set_merge_joy_button_axis
 
 
 # -----------------------------------------------------------------------------
@@ -149,6 +149,19 @@ onready var tree_node : Tree = $Tree
 # -----------------------------------------------------------------------------
 # Setters/Getters
 # -----------------------------------------------------------------------------
+func set_group_name(gn : String, force : bool = false) -> void:
+	if (gn == "" or gn.is_valid_identifier()) and (gn != group_name or force == true):
+		group_name = gn
+		if group_name == "":
+			_ClearList()
+		else:
+			_BuildList()
+
+func set_rel_action_spacing(s : float) -> void:
+	if s > 0.0 and s < 1.0:
+		rel_action_spacing = s
+		_UpdateColumnSpacing()
+
 func set_enable_key_binding(e : bool) -> void:
 	if enable_key_bindings != e:
 		enable_key_bindings = e
@@ -253,7 +266,13 @@ func _BuildBindingColumns() -> int:
 	return idx
 
 func _UpdateColumnSpacing() -> void:
+	if tree_node == null:
+		return
+		
 	var columns : int = _ColumnCount()
+	if tree_node.columns != columns:
+		return
+		
 	var spacing = rel_action_spacing
 	var total_spacing : float = spacing * columns
 	if total_spacing >= 1.0:
@@ -271,7 +290,7 @@ func _ClearList(clear_root : bool = false) -> void:
 	if _root == null:
 		return
 	
-	#_ClearLastItem()
+	_ClearLastItem()
 	var item : TreeItem = _root.get_children()
 	if item != null:
 		_root.remove_child(item)
@@ -306,13 +325,16 @@ func _BuildListHeader() -> void:
 func _BuildList(full_rebuild : bool = false) -> void:
 	if tree_node == null:
 		return
-	
+
 	if group_name.is_valid_identifier():
 		var alist : Array = EIM.get_group_action_list(group_name)
 		if alist.size() > 0:
 			if _root == null or full_rebuild:
 				if full_rebuild:
 					_ClearList(full_rebuild)
+				var cols = _ColumnCount()
+				if tree_node.columns != cols:
+					tree_node.columns = cols
 				_UpdateColumnSpacing()
 				_root = tree_node.create_item()
 				tree_node.set_hide_root(true)
