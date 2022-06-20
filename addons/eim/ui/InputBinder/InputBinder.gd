@@ -18,20 +18,18 @@ const _INPUT_MOUSE : int = 1
 const _INPUT_JOY_BUTTON : int = 2
 const _INPUT_JOY_AXIS : int = 3
 
-enum JOYVEND {XBox=0, Sony=1, Nintendo=2}
-
 # -----------------------------------------------------------------------------
-# Exports
+# "Export" Variables
 # -----------------------------------------------------------------------------
-export var group_name : String = ""									setget set_group_name
-export var joypad_lookup_group : String = "XBox"					setget set_joypad_lookup_group
-export (float, 0.01, 0.99) var rel_action_spacing : float = 0.1		setget set_rel_action_spacing
-export var display_header : bool = true
-export var enable_key_bindings : bool = true						setget set_enable_key_binding
-export var enable_mouse_bindings : bool = true						setget set_enable_mouse_binding
-export var enable_joy_bindings : bool = true						setget set_enable_joy_binding
-export var merge_joy_button_axis : bool = false						setget set_merge_joy_button_axis
+var _group_name : String = ""
+var _joypad_lookup_group : String = "XBox"
+var _rel_action_spacing : float = 0.1
 
+var _display_header : bool = true
+var _enable_key_bindings : bool = true
+var _enable_mouse_bindings : bool = true
+var _enable_joy_bindings : bool = true
+var _merge_joy_button_axis : bool = false
 
 # -----------------------------------------------------------------------------
 # Variables
@@ -150,41 +148,41 @@ onready var tree_node : Tree = $Tree
 # Setters/Getters
 # -----------------------------------------------------------------------------
 func set_group_name(gn : String, force : bool = false) -> void:
-	if (gn == "" or gn.is_valid_identifier()) and (gn != group_name or force == true):
-		group_name = gn
-		if group_name == "":
+	if (gn == "" or gn.is_valid_identifier()) and (gn != _group_name or force == true):
+		_group_name = gn
+		if _group_name == "":
 			_ClearList()
 		else:
 			_BuildList()
 
 func set_rel_action_spacing(s : float) -> void:
 	if s > 0.0 and s < 1.0:
-		rel_action_spacing = s
+		_rel_action_spacing = s
 		_UpdateColumnSpacing()
 
-func set_enable_key_binding(e : bool) -> void:
-	if enable_key_bindings != e:
-		enable_key_bindings = e
+func set_enable_key_bindings(e : bool) -> void:
+	if _enable_key_bindings != e:
+		_enable_key_bindings = e
 		_BuildList(true)
 
-func set_enable_mouse_binding(e : bool) -> void:
-	if enable_mouse_bindings != e:
-		enable_mouse_bindings = e
+func set_enable_mouse_bindings(e : bool) -> void:
+	if _enable_mouse_bindings != e:
+		_enable_mouse_bindings = e
 		_BuildList(true)
 
-func set_enable_joy_binding(e : bool) -> void:
-	if enable_joy_bindings != e:
-		enable_joy_bindings = e
+func set_enable_joy_bindings(e : bool) -> void:
+	if _enable_joy_bindings != e:
+		_enable_joy_bindings = e
 		_BuildList(true)
 
 func set_merge_joy_button_axis(e : bool) -> void:
-	if merge_joy_button_axis != e:
-		merge_joy_button_axis = e
+	if _merge_joy_button_axis != e:
+		_merge_joy_button_axis = e
 		_BuildList(true)
 
 func set_joypad_lookup_group(g : String) -> void:
-	if g != joypad_lookup_group:
-		joypad_lookup_group = g
+	if g != _joypad_lookup_group:
+		_joypad_lookup_group = g
 		_BuildList(true)
 
 # -----------------------------------------------------------------------------
@@ -197,10 +195,181 @@ func _ready() -> void:
 	tree_node.connect("resized", self, "_UpdateColumnSpacing")
 	tree_node.connect("focus_entered", self, "_on_focus_entered")
 	tree_node.connect("focus_exited", self, "_on_focus_exited")
+	var props = tree_node.get_property_list()
+	for prop in props:
+		if prop.name == "custom_colors/custom_button_font_highlight":
+			for key in prop.keys():
+				print(key, ": ", prop[key])
+			print("---")
+
+
+func _get(property : String):
+	match property:
+		"group_name":
+			return _group_name
+		"joypad_lookup_group":
+			return _joypad_lookup_group
+		"rel_action_spacing":
+			return _rel_action_spacing
+		"display_header":
+			return _display_header
+		"enable_key_bindings":
+			return _enable_key_bindings
+		"enable_mouse_bindings":
+			return _enable_mouse_bindings
+		"enable_joy_bindings":
+			return _enable_joy_bindings
+		"merge_joy_button_axis":
+			return _merge_joy_button_axis
+		"custom_button_font_highlight":
+			if tree_node and tree_node.has_color_override("custom_button_font_highlight"):
+				return tree_node.get_color("custom_button_font_highlight")
+			else: 
+				return Color(0,0,0)
+	return null
+
+
+func _set(property : String, value) -> bool:
+	if property == "custom_button_font_highlight":
+		print("set ", property, ": ", value)
+	var success : bool = true
+	match property:
+		"group_name":
+			if typeof(value) == TYPE_STRING:
+				set_group_name(value)
+			else : success = false
+		"joypad_lookup_group":
+			if typeof(value) == TYPE_STRING:
+				set_joypad_lookup_group(value)
+			else : success = false
+		"rel_action_spacing":
+			if typeof(value) == TYPE_REAL:
+				set_rel_action_spacing(value)
+			else : success = false
+		"display_header":
+			if typeof(value) == TYPE_BOOL:
+				_display_header = value
+			else : success = false
+		"enable_key_bindings":
+			if typeof(value) == TYPE_BOOL:
+				set_enable_key_bindings(value)
+			else : success = false
+		"enable_mouse_bindings":
+			if typeof(value) == TYPE_BOOL:
+				set_enable_mouse_bindings(value)
+			else : success = false
+		"enable_joy_bindings":
+			if typeof(value) == TYPE_BOOL:
+				set_enable_joy_bindings(value)
+			else : success = false
+		"merge_joy_button_axis":
+			if typeof(value) == TYPE_BOOL:
+				set_merge_joy_button_axis(value)
+			else : success = false
+		"custom_button_font_highlight":
+			if tree_node:
+				if typeof(value) == TYPE_COLOR:
+					tree_node.add_color_override("custom_button_font_highlight", value)
+				elif typeof(value) == TYPE_NIL:
+					tree_node.set("custom_colors/custom_button_font_highlight", null)
+				else : success = false
+			else : success = false
+		_:
+			success = false
+	if success:
+		property_list_changed_notify()
+	return success
+
+
+func _get_property_list() -> Array:
+	var arr : Array = [
+		{
+			name="InputBinder",
+			type=TYPE_NIL,
+			usage=PROPERTY_USAGE_CATEGORY
+		},
+		{
+			name="group_name",
+			type=TYPE_STRING,
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="joypad_lookup_group",
+			type=TYPE_STRING,
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="rel_action_spacing",
+			type=TYPE_REAL,
+			hint=PROPERTY_HINT_RANGE,
+			hint_string="float, 0.01, 0.99",
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="Header",
+			type=TYPE_NIL,
+			usage=PROPERTY_USAGE_GROUP
+		},
+		{
+			name="display_header",
+			type=TYPE_BOOL,
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="enable_key_bindings",
+			type=TYPE_BOOL,
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="enable_mouse_bindings",
+			type=TYPE_BOOL,
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="enable_joy_bindings",
+			type=TYPE_BOOL,
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="merge_joy_button_axis",
+			type=TYPE_BOOL,
+			usage=PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name="theme_override/colors",
+			type=TYPE_NIL,
+			usage=PROPERTY_USAGE_GROUP
+		},
+		{
+			name="custom_button_font_highlight",
+			type=TYPE_COLOR,
+			usage=18 if not _TreeHasThemeOverride(0, "custom_button_font_highlight") else 51
+			# Undocumented usage variables
+			# 18 - checkable (off)
+			# 51 - checkable (on)
+		}
+	]
+	return arr
+
 
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
+func _TreeHasThemeOverride(type : int, prop : String) -> bool:
+	if tree_node:
+		match type:
+			0: # Colors
+				return tree_node.has_color_override(prop)
+			1: # Constants
+				return tree_node.has_constant_override(prop)
+			2: # Fonts
+				return tree_node.has_font_override(prop)
+			3: # Icons
+				return tree_node.has_icon_override(prop)
+			4: # Stylebox
+				return tree_node.has_stylebox_override(prop)
+	return false
+
 func _WatchForInput(input_focus : int) -> void:
 	var imd = InputMonitorDialog.instance()
 	imd.input_focus = input_focus
@@ -230,33 +399,33 @@ func _SettingNameToHumanReadable(setting_name : String) -> String:
 
 func _ColumnCount() -> int:
 	var columns : int = 1
-	if enable_key_bindings:
+	if _enable_key_bindings:
 		columns += 1
-	if enable_mouse_bindings:
+	if _enable_mouse_bindings:
 		columns += 1
-	if enable_joy_bindings:
-		columns += 1 if merge_joy_button_axis else 2
+	if _enable_joy_bindings:
+		columns += 1 if _merge_joy_button_axis else 2
 	return columns
 
 func _BuildBindingColumns() -> int:
 	# -- Calculates the column in the tree the input values are associated and
 	#  returns the number of indexes used.
 	var idx : int = 1
-	if enable_key_bindings:
+	if _enable_key_bindings:
 		_binding_column[_INPUT_KEY] = idx
 		idx += 1
 	else:
 		_binding_column[_INPUT_KEY] = -1
 		
-	if enable_mouse_bindings:
+	if _enable_mouse_bindings:
 		_binding_column[_INPUT_MOUSE] = idx
 		idx += 1
 	else:
 		_binding_column[_INPUT_MOUSE] = -1
 	
-	if enable_joy_bindings:
+	if _enable_joy_bindings:
 		_binding_column[_INPUT_JOY_BUTTON] = idx
-		if not merge_joy_button_axis:
+		if not _merge_joy_button_axis:
 			idx += 1
 		_binding_column[_INPUT_JOY_AXIS] = idx
 	else:
@@ -273,7 +442,7 @@ func _UpdateColumnSpacing() -> void:
 	if tree_node.columns != columns:
 		return
 		
-	var spacing = rel_action_spacing
+	var spacing = _rel_action_spacing
 	var total_spacing : float = spacing * columns
 	if total_spacing >= 1.0:
 		total_spacing = 0.75
@@ -307,18 +476,22 @@ func _BuildListHeader() -> void:
 		header.set_selectable(_COLUMN_DESCRIPTION, false)
 		if _binding_column[_INPUT_KEY] >= 0:
 			header.set_selectable(_binding_column[_INPUT_KEY], false)
+			header.set_text_align(_binding_column[_INPUT_KEY], TreeItem.ALIGN_CENTER)
 			header.set_icon(_binding_column[_INPUT_KEY], preload("res://addons/eim/icons/input_keyboard.svg"))
 		if _binding_column[_INPUT_MOUSE] >= 0:
 			header.set_selectable(_binding_column[_INPUT_MOUSE], false)
+			header.set_text_align(_binding_column[_INPUT_MOUSE], TreeItem.ALIGN_CENTER)
 			header.set_icon(_binding_column[_INPUT_MOUSE], preload("res://addons/eim/icons/input_mouse.svg"))
 		if _binding_column[_INPUT_JOY_AXIS] >= 0:
 			header.set_selectable(_binding_column[_INPUT_JOY_AXIS], false)
-			if merge_joy_button_axis:
+			header.set_text_align(_binding_column[_INPUT_JOY_AXIS], TreeItem.ALIGN_CENTER)
+			if _merge_joy_button_axis:
 				header.set_icon(_binding_column[_INPUT_JOY_AXIS], preload("res://addons/eim/icons/input_joypad.svg"))
 			else:
 				header.set_icon(_binding_column[_INPUT_JOY_AXIS], preload("res://addons/eim/icons/input_joypad_axii.svg"))
 				
 				header.set_selectable(_binding_column[_INPUT_JOY_BUTTON], false)
+				header.set_text_align(_binding_column[_INPUT_JOY_BUTTON], TreeItem.ALIGN_CENTER)
 				header.set_icon(_binding_column[_INPUT_JOY_BUTTON], preload("res://addons/eim/icons/input_joypad_buttons.svg"))
 
 
@@ -326,12 +499,13 @@ func _BuildList(full_rebuild : bool = false) -> void:
 	if tree_node == null:
 		return
 
-	if group_name.is_valid_identifier():
-		var alist : Array = EIM.get_group_action_list(group_name)
+	if _group_name.is_valid_identifier():
+		var alist : Array = EIM.get_group_action_list(_group_name)
 		if alist.size() > 0:
 			if _root == null or full_rebuild:
 				if full_rebuild:
 					_ClearList(full_rebuild)
+				_BuildBindingColumns()
 				var cols = _ColumnCount()
 				if tree_node.columns != cols:
 					tree_node.columns = cols
@@ -360,13 +534,13 @@ func _BuildList(full_rebuild : bool = false) -> void:
 					var info : Dictionary = {"text":"", "icon":null}
 					match event.get_class():
 						"InputEventKey":
-							if enable_key_bindings:
+							if _enable_key_bindings:
 								column = _binding_column[_INPUT_KEY]
 								info.text = OS.get_scancode_string(
 									event.scancode if event.scancode != 0 else event.physical_scancode
 								)
 						"InputEventMouseButton":
-							if enable_mouse_bindings:
+							if _enable_mouse_bindings:
 								column = _binding_column[_INPUT_MOUSE]
 								match event.button_index:
 									BUTTON_LEFT:
@@ -388,29 +562,30 @@ func _BuildList(full_rebuild : bool = false) -> void:
 									BUTTON_XBUTTON2:
 										info.text = "Xtra 2"
 						"InputEventJoypadButton":
-							if enable_joy_bindings:
+							if _enable_joy_bindings:
 								column = _binding_column[_INPUT_JOY_BUTTON]
 								info = get_joypad_button_lookup(
-									joypad_lookup_group.to_lower(), event.button_index
+									_joypad_lookup_group.to_lower(), event.button_index
 								)
 								if info.text == "":
 									info.text = Input.get_joy_button_string(event.button_index)
 						"InputEventJoypadAxis":
-							if enable_joy_bindings:
+							if _enable_joy_bindings:
 								column = _binding_column[_INPUT_JOY_AXIS]
 								info = get_joypad_axis_lookup(
-									joypad_lookup_group.to_lower(), event.axis
+									_joypad_lookup_group.to_lower(), event.axis
 								)
 								if info.text == "":
 									info.text = Input.get_joy_axis_string(event.axis)
 					
 					if column >= 0 and info.text != "":
+						item.set_text_align(column, TreeItem.ALIGN_CENTER)
 						if info.icon != null:
 							item.set_icon(column, info.icon)
 						else:
 							item.set_text(column, info.text)
 						item.set_metadata(column, event)
-						if not EIM.is_group_action_inputs_unique(group_name, ainfo.name):
+						if not EIM.is_group_action_inputs_unique(_group_name, ainfo.name):
 							item.set_custom_bg_color(column, Color(1,0,0), true)
 
 
@@ -422,11 +597,11 @@ func _GetInputOrColumnClass(event : InputEvent, column : int) -> String:
 	if column == _binding_column[_INPUT_MOUSE]:
 		return "InputEventMouseButton"
 	if column == _binding_column[_INPUT_JOY_BUTTON]:
-		if not merge_joy_button_axis:
+		if not _merge_joy_button_axis:
 			return "InputEventJoypadButton"
 		return "InputEventJoypad"
 	if column == _binding_column[_INPUT_JOY_AXIS]:
-		if not merge_joy_button_axis:
+		if not _merge_joy_button_axis:
 			return "InputEventJoypadMotion"
 		return "InputEventJoypad"
 	return ""
@@ -499,9 +674,9 @@ func _on_input_captured(event, imd) -> void:
 		if meta_class == event.get_class():
 			var action_name = _last_selected.item.get_metadata(_COLUMN_DESCRIPTION)
 			if meta != null:
-				EIM.replace_group_action_input(group_name, action_name, meta, event)
+				EIM.replace_group_action_input(_group_name, action_name, meta, event)
 			else:
-				EIM.add_group_action_input(group_name, action_name, event)
+				EIM.add_group_action_input(_group_name, action_name, event)
 			_BuildList() # This is a little ham-fisted.
 		else:
 			printerr("Input Type Mismatch")
