@@ -6,14 +6,6 @@
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 1 )
-group_name = ""
-joypad_lookup_group = "XBox"
-rel_action_spacing = 0.1
-display_header = true
-enable_key_bindings = true
-enable_mouse_bindings = true
-enable_joy_bindings = true
-merge_joy_button_axis = false
 
 [node name="Tree" type="Tree" parent="."]
 margin_right = 1920.0

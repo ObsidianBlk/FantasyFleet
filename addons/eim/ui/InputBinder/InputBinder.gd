@@ -10,6 +10,7 @@ tool
 # Constants
 # -----------------------------------------------------------------------------
 const InputMonitorDialog = preload("res://addons/eim/ui/InputMonitorDialog/InputMonitorDialog.tscn")
+const ThemeWrapper = preload("res://addons/eim/scripts/ThemeWrapper.gd")
 
 const _COLUMN_DESCRIPTION : int = 0
 
@@ -43,6 +44,8 @@ var _binding_column = {
 
 var _root : TreeItem = null
 var _last_selected : Dictionary = {"item":null, "column":-1, "color":Color(0,0,0)}
+
+var _tw = null
 
 var _joybtn_lut : Dictionary = {
 	"xbox": {
@@ -189,18 +192,22 @@ func set_joypad_lookup_group(g : String) -> void:
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
+	if _tw == null:
+		_tw = ThemeWrapper.new()
+	_tw.add_control_source(tree_node)
+	
 	tree_node.connect("item_activated", self, "_on_item_activated")
 	tree_node.connect("item_selected", self, "_on_item_selected")
 	tree_node.connect("nothing_selected", self, "_on_nothing_selected")
 	tree_node.connect("resized", self, "_UpdateColumnSpacing")
 	tree_node.connect("focus_entered", self, "_on_focus_entered")
 	tree_node.connect("focus_exited", self, "_on_focus_exited")
-	var props = tree_node.get_property_list()
-	for prop in props:
-		if prop.name == "custom_colors/custom_button_font_highlight":
-			for key in prop.keys():
-				print(key, ": ", prop[key])
-			print("---")
+#	var props = tree_node.get_property_list()
+#	for prop in props:
+#		if prop.name == "custom_colors/custom_button_font_highlight":
+#			for key in prop.keys():
+#				print(key, ": ", prop[key])
+#			print("---")
 
 
 func _get(property : String):
@@ -221,17 +228,18 @@ func _get(property : String):
 			return _enable_joy_bindings
 		"merge_joy_button_axis":
 			return _merge_joy_button_axis
-		"custom_button_font_highlight":
-			if tree_node and tree_node.has_color_override("custom_button_font_highlight"):
-				return tree_node.get_color("custom_button_font_highlight")
-			else: 
-				return Color(0,0,0)
+#		"custom_button_font_highlight":
+#			if tree_node and tree_node.has_color_override("custom_button_font_highlight"):
+#				return tree_node.get_color("custom_button_font_highlight")
+#			else: 
+#				return Color(0,0,0)
+		_:
+			if _tw != null:
+				return _tw.get_property(property)
 	return null
 
 
 func _set(property : String, value) -> bool:
-	if property == "custom_button_font_highlight":
-		print("set ", property, ": ", value)
 	var success : bool = true
 	match property:
 		"group_name":
@@ -266,22 +274,27 @@ func _set(property : String, value) -> bool:
 			if typeof(value) == TYPE_BOOL:
 				set_merge_joy_button_axis(value)
 			else : success = false
-		"custom_button_font_highlight":
-			if tree_node:
-				if typeof(value) == TYPE_COLOR:
-					tree_node.add_color_override("custom_button_font_highlight", value)
-				elif typeof(value) == TYPE_NIL:
-					tree_node.set("custom_colors/custom_button_font_highlight", null)
-				else : success = false
-			else : success = false
+#		"custom_button_font_highlight":
+#			if tree_node:
+#				if typeof(value) == TYPE_COLOR:
+#					tree_node.add_color_override("custom_button_font_highlight", value)
+#				elif typeof(value) == TYPE_NIL:
+#					tree_node.set("custom_colors/custom_button_font_highlight", null)
+#				else : success = false
+#			else : success = false
 		_:
-			success = false
+			if _tw != null:
+				success = _tw.set_property(property, value)
+			else:
+				success = false
 	if success:
 		property_list_changed_notify()
 	return success
 
 
 func _get_property_list() -> Array:
+	if _tw == null:
+		_tw = ThemeWrapper.new()
 	var arr : Array = [
 		{
 			name="InputBinder",
@@ -335,20 +348,22 @@ func _get_property_list() -> Array:
 			type=TYPE_BOOL,
 			usage=PROPERTY_USAGE_DEFAULT
 		},
-		{
-			name="theme_override/colors",
-			type=TYPE_NIL,
-			usage=PROPERTY_USAGE_GROUP
-		},
-		{
-			name="custom_button_font_highlight",
-			type=TYPE_COLOR,
-			usage=18 if not _TreeHasThemeOverride(0, "custom_button_font_highlight") else 51
-			# Undocumented usage variables
-			# 18 - checkable (off)
-			# 51 - checkable (on)
-		}
+#		{
+#			name="theme_override/colors",
+#			type=TYPE_NIL,
+#			usage=PROPERTY_USAGE_GROUP
+#		},
+#		{
+#			name="custom_button_font_highlight",
+#			type=TYPE_COLOR,
+#			usage=18 if not _TreeHasThemeOverride(0, "custom_button_font_highlight") else 51
+#			# Undocumented usage variables
+#			# 18 - checkable (off)
+#			# 51 - checkable (on)
+#		}
 	]
+	if _tw != null:
+		return _tw.inject_theme_property_list(arr)
 	return arr
 
 
