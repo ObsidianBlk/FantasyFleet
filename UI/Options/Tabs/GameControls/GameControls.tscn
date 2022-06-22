@@ -88,5 +88,7 @@ margin_right = 1912.0
 margin_bottom = 1030.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+enable_key_bindings = false
+enable_mouse_bindings = false
 
 [connection signal="group_selected" from="VBC/InputMapScroll/VBC/GroupSelector" to="VBC/InputMapScroll/VBC/InputBinder" method="set_group_name"]

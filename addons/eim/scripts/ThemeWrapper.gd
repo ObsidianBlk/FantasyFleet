@@ -9,7 +9,7 @@ enum TYPE {Colors=0, Constants=1, Fonts=2, Icons=3, Styles=4}
 # -----------------------------------------------------------------------------
 # Exports
 # -----------------------------------------------------------------------------
-export var theme_type : String = ""
+export var default_theme_type : String = ""
 
 # -----------------------------------------------------------------------------
 # Variables
@@ -90,14 +90,14 @@ func _BuildControlProperties(state : Dictionary) -> void:
 				"custom_colors":
 					var override : bool = c.has_color_override(pname)
 					state.colors.append({
-						name=pname,
+						name=prop.name,
 						type=TYPE_COLOR,
 						usage=51 if override else 18
 					})
 				"custom_constants":
 					var override : bool = c.has_constant_override(pname)
 					state.consts.append({
-						name=pname,
+						name=prop.name,
 						type=prop.type,
 						hint=prop.hint,
 						hint_string=prop.hint_string,
@@ -106,7 +106,7 @@ func _BuildControlProperties(state : Dictionary) -> void:
 				"custom_fonts":
 					var override : bool = c.has_font_override(pname)
 					state.fonts.append({
-						name=pname,
+						name=prop.name,
 						type=TYPE_OBJECT,
 						hint=PROPERTY_HINT_RESOURCE_TYPE,
 						hint_string="Font",
@@ -115,7 +115,7 @@ func _BuildControlProperties(state : Dictionary) -> void:
 				"custom_icons":
 					var override : bool = c.has_icon_override(pname)
 					state.icons.append({
-						name=pname,
+						name=prop.name,
 						type=TYPE_OBJECT,
 						hint=PROPERTY_HINT_RESOURCE_TYPE,
 						hint_string="Texture",
@@ -124,7 +124,7 @@ func _BuildControlProperties(state : Dictionary) -> void:
 				"custom_styles":
 					var override : bool = c.has_stylebox_override(pname)
 					state.styles.append({
-						name=pname,
+						name=prop.name,
 						type=TYPE_OBJECT,
 						hint=PROPERTY_HINT_RESOURCE_TYPE,
 						hint_string="StyleBox",
@@ -132,7 +132,8 @@ func _BuildControlProperties(state : Dictionary) -> void:
 					})
 
 func _BuildCustomProperties(state : Dictionary) -> void:
-	for cprop in _customs:
+	for key in _customs:
+		var cprop = _customs[key]
 		match cprop.type:
 			TYPE.Colors:
 				state.colors.append(cprop.prop)
@@ -186,10 +187,13 @@ func add_color_override(property : String, value) -> void:
 				property = "custom_colors/%s"%[property]
 				c.set(property, null)
 			else:
+				print("Property: ", property)
 				c.add_color_override(property, value)
 			return
 
-func get_color(property : String) -> Color:
+func get_color(property : String, theme_type : String = "") -> Color:
+	if theme_type == "":
+		theme_type = default_theme_type
 	for ref in _controls:
 		var c : Control = ref.get_ref()
 		if not c:
@@ -228,7 +232,9 @@ func add_constant_override(property : String, value) -> void:
 				c.add_constant_override(property, value)
 			return
 
-func get_constant(property : String) -> int:
+func get_constant(property : String, theme_type : String = "") -> int:
+	if theme_type == "":
+		theme_type = default_theme_type
 	for ref in _controls:
 		var c : Control = ref.get_ref()
 		if not c:
@@ -267,7 +273,9 @@ func add_font_override(property : String, value) -> void:
 				c.add_font_override(property, value)
 			return
 
-func get_font(property : String) -> Font:
+func get_font(property : String, theme_type : String = "") -> Font:
+	if theme_type == "":
+		theme_type = default_theme_type
 	for ref in _controls:
 		var c : Control = ref.get_ref()
 		if not c:
@@ -306,7 +314,9 @@ func add_icon_override(property : String, value) -> void:
 				c.add_icon_override(property, value)
 			return
 
-func get_icon(property : String) -> Texture:
+func get_icon(property : String, theme_type : String = "") -> Texture:
+	if theme_type == "":
+		theme_type = default_theme_type
 	for ref in _controls:
 		var c : Control = ref.get_ref()
 		if not c:
@@ -345,7 +355,9 @@ func add_stylebox_override(property : String, value) -> void:
 				c.add_stylebox_override(property, value)
 			return
 
-func get_stylebox(property : String) -> StyleBox:
+func get_stylebox(property : String, theme_type : String = "") -> StyleBox:
+	if theme_type == "":
+		theme_type = default_theme_type
 	for ref in _controls:
 		var c : Control = ref.get_ref()
 		if not c:
@@ -361,97 +373,126 @@ func get_stylebox(property : String) -> StyleBox:
 	return null
 
 func get_property(property : String):
-	var type : int = get_property_type(property)
-	if type >= 0:
-		match type:
-			TYPE.Colors:
-				if has_color_override(property):
-					return get_color(property)
-			TYPE.Constants:
-				if has_constant_override(property):
-					return get_constant(property)
-			TYPE.Fonts:
-				if has_font_override(property):
-					return get_font(property)
-			TYPE.Icons:
-				if has_icon_override(property):
-					return get_icon(property)
-			TYPE.Styles:
-				if has_stylebox_override(property):
-					return get_stylebox(property)
+	#var type : int = get_property_type(property)
+	var idx : int = property.find("/")
+	var prefix : String = ""
+	if idx > 0:
+		prefix = property.substr(0, idx)
+		property = property.substr(idx + 1)
+	
+	match prefix:
+		"custom_colors":
+			if has_color_override(property):
+				return get_color(property)
+		"custom_constants":
+			if has_constant_override(property):
+				return get_constant(property)
+		"custom_fonts":
+			if has_font_override(property):
+				return get_font(property)
+		"custom_icons":
+			if has_icon_override(property):
+				return get_icon(property)
+		"custom_styles":
+			if has_stylebox_override(property):
+				return get_stylebox(property)
 	return null
 
 func set_property(property : String, value) -> bool:
-	var type : int = get_property_type(property)
-	if type >= 0:
-		match type:
-			TYPE.Colors:
-				if value == null or typeof(value) == TYPE_COLOR:
-					add_color_override(property, value)
-					return true
-			TYPE.Constants:
-				if value == null or typeof(value) == TYPE_INT:
-					add_constant_override(property, value)
-					return true
-			TYPE.Fonts:
-				if value == null or value is Font:
-					add_font_override(property, value)
-					return true
-			TYPE.Icons:
-				if value == null or value is Texture:
-					add_icon_override(property, value)
-					return true
-			TYPE.Styles:
-				if value == null or value is StyleBox:
-					add_stylebox_override(property, value)
-					return true
+	var idx : int = property.find("/")
+	var prefix : String = ""
+	if idx > 0:
+		prefix = property.substr(0, idx)
+		property = property.substr(idx + 1)
+	
+	match prefix:
+		"custom_colors":
+			if value == null or typeof(value) == TYPE_COLOR:
+				add_color_override(property, value)
+				return true
+		"custom_constants":
+			if value == null or typeof(value) == TYPE_INT:
+				add_constant_override(property, value)
+				return true
+		"custom_fonts":
+			if value == null or value is Font:
+				add_font_override(property, value)
+				return true
+		"custom_icons":
+			if value == null or value is Texture:
+				add_icon_override(property, value)
+				return true
+		"custom_styles":
+			if value == null or value is StyleBox:
+				add_stylebox_override(property, value)
+				return true
 	return false
 
-func add_custom_property(type : int, property : String, prop_type : int, checked : bool = false, hint : int = 0, hint_string : String = "") -> void:
+func add_custom_property(property : String, checked : bool = false) -> void:	
 	if not property in _customs:
-		_customs[property] = {
-			"type":type,
-			"prop":{
-				name=property,
-				type=prop_type,
-				hint=hint,
-				hint_string=hint_string,
-				usage=51 if checked else 18
+		var type : int = -1
+		var prop_type : int = -1
+		var hint : int = 0
+		var hint_string : String = ""
+		var idx : int = property.find("/")
+		var prefix : String = ""
+		if idx > 0:
+			prefix = property.substr(0, idx)
+		match prefix:
+			"custom_colors":
+				type = TYPE.Colors
+				prop_type = TYPE_COLOR
+			"custom_constants":
+				type = TYPE.Constants
+				prop_type = TYPE_INT
+			"custom_fonts":
+				type = TYPE.Fonts
+				prop_type = TYPE_OBJECT
+				hint = PROPERTY_HINT_RESOURCE_TYPE
+				hint_string = "Font"
+			"custom_icons":
+				type = TYPE.Icons
+				prop_type = TYPE_OBJECT
+				hint = PROPERTY_HINT_RESOURCE_TYPE
+				hint_string = "Texture"
+			"custom_styles":
+				type = TYPE.Styles
+				prop_type = TYPE_OBJECT
+				hint = PROPERTY_HINT_RESOURCE_TYPE
+				hint_string = "StyleBox"
+		if type >= 0:
+			_customs[property] = {
+				"type":type,
+				"prop":{
+					name=property,
+					type=prop_type,
+					hint=hint,
+					hint_string=hint_string,
+					usage=51 if checked else 18
+					# Undocumented usage variables
+					# 18 - checkable (off)
+					# 51 - checkable (on)
+				}
 			}
-		}
 
 func inject_theme_property_list(arr : Array) -> Array:
 	var state : Dictionary = {
-		"colors": [{
-			name="theme_overrides/colors",
-			type=TYPE_NIL,
-			usage=PROPERTY_USAGE_GROUP
-		}],
-		"consts": [{
-			name="theme_overrides/constants",
-			type=TYPE_NIL,
-			usage=PROPERTY_USAGE_GROUP
-		}],
-		"fonts": [{
-			name="theme_overrides/fonts",
-			type=TYPE_NIL,
-			usage=PROPERTY_USAGE_GROUP
-		}],
-		"icons": [{
-			name="theme_overrides/icons",
-			type=TYPE_NIL,
-			usage=PROPERTY_USAGE_GROUP
-		}],
-		"styles": [{
-			name="theme_overrides/styles",
-			type=TYPE_NIL,
-			usage=PROPERTY_USAGE_GROUP
-		}]
+		"colors": [],
+		"consts": [],
+		"fonts": [],
+		"icons": [],
+		"styles": []
 	}
 	
 	_BuildControlProperties(state)
 	_BuildCustomProperties(state)
 	_customs.clear()
+	arr.append({
+		name = "Theme Overrides",
+		type = TYPE_NIL,
+		hint_string = "custom_",
+		usage = PROPERTY_USAGE_GROUP
+	})
 	arr.append_array(state.colors)
 	arr.append_array(state.consts)
 	arr.append_array(state.fonts)

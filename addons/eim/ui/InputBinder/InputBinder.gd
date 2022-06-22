@@ -19,6 +19,9 @@ const _INPUT_MOUSE : int = 1
 const _INPUT_JOY_BUTTON : int = 2
 const _INPUT_JOY_AXIS : int = 3
 
+const _THEME_HEADER_BG_DEFAULT : Color = Color(0.25098, 0.270588, 0.32549)
+const _THEME_HEADER_LABEL_DEFAULT : Color = Color(0.647059, 0.937255, 0.67451)
+
 # -----------------------------------------------------------------------------
 # "Export" Variables
 # -----------------------------------------------------------------------------
@@ -31,6 +34,11 @@ var _enable_key_bindings : bool = true
 var _enable_mouse_bindings : bool = true
 var _enable_joy_bindings : bool = true
 var _merge_joy_button_axis : bool = false
+
+# ---
+# Theme Items
+var _theme_header_bg = null
+var _theme_header_label = null
 
 # -----------------------------------------------------------------------------
 # Variables
@@ -194,6 +202,7 @@ func set_joypad_lookup_group(g : String) -> void:
 func _ready() -> void:
 	if _tw == null:
 		_tw = ThemeWrapper.new()
+	_tw.default_theme_type = "InputBinder"
 	_tw.add_control_source(tree_node)
 	
 	tree_node.connect("item_activated", self, "_on_item_activated")
@@ -203,11 +212,17 @@ func _ready() -> void:
 	tree_node.connect("focus_entered", self, "_on_focus_entered")
 	tree_node.connect("focus_exited", self, "_on_focus_exited")
 #	var props = tree_node.get_property_list()
+#	var prev_prop = null
 #	for prop in props:
 #		if prop.name == "custom_colors/custom_button_font_highlight":
 #			for key in prop.keys():
 #				print(key, ": ", prop[key])
 #			print("---")
+#			if prev_prop:
+#				for key in prev_prop.keys():
+#					print(key, ": ", prev_prop[key])
+#				print("---")
+#		prev_prop = prop
 
 
 func _get(property : String):
@@ -228,11 +243,10 @@ func _get(property : String):
 			return _enable_joy_bindings
 		"merge_joy_button_axis":
 			return _merge_joy_button_axis
-#		"custom_button_font_highlight":
-#			if tree_node and tree_node.has_color_override("custom_button_font_highlight"):
-#				return tree_node.get_color("custom_button_font_highlight")
-#			else: 
-#				return Color(0,0,0)
+		"custom_colors/header_background":
+			return _theme_header_bg
+		"custom_colors/header_label":
+			return _theme_header_label
 		_:
 			if _tw != null:
 				return _tw.get_property(property)
@@ -274,14 +288,16 @@ func _set(property : String, value) -> bool:
 			if typeof(value) == TYPE_BOOL:
 				set_merge_joy_button_axis(value)
 			else : success = false
-#		"custom_button_font_highlight":
-#			if tree_node:
-#				if typeof(value) == TYPE_COLOR:
-#					tree_node.add_color_override("custom_button_font_highlight", value)
-#				elif typeof(value) == TYPE_NIL:
-#					tree_node.set("custom_colors/custom_button_font_highlight", null)
-#				else : success = false
-#			else : success = false
+		"custom_colors/header_background":
+			if value == null or typeof(value) == TYPE_COLOR:
+				_theme_header_bg = value
+				call_deferred("_CustomTheme")
+			else : success = false
+		"custom_colors/header_label":
+			if value == null or typeof(value) == TYPE_COLOR:
+				_theme_header_label = value
+				call_deferred("_CustomTheme")
+			else : success = false
 		_:
 			if _tw != null:
 				success = _tw.set_property(property, value)
@@ -348,21 +364,10 @@ func _get_property_list() -> Array:
 			type=TYPE_BOOL,
 			usage=PROPERTY_USAGE_DEFAULT
 		},
-#		{
-#			name="theme_override/colors",
-#			type=TYPE_NIL,
-#			usage=PROPERTY_USAGE_GROUP
-#		},
-#		{
-#			name="custom_button_font_highlight",
-#			type=TYPE_COLOR,
-#			usage=18 if not _TreeHasThemeOverride(0, "custom_button_font_highlight") else 51
-#			# Undocumented usage variables
-#			# 18 - checkable (off)
-#			# 51 - checkable (on)
-#		}
 	]
 	if _tw != null:
+		_tw.add_custom_property("custom_colors/header_background", _theme_header_bg != null)
+		_tw.add_custom_property("custom_colors/header_label", _theme_header_label != null)
 		return _tw.inject_theme_property_list(arr)
 	return arr
 
@@ -370,19 +375,26 @@ func _get_property_list() -> Array:
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
-func _TreeHasThemeOverride(type : int, prop : String) -> bool:
-	if tree_node:
-		match type:
-			0: # Colors
-				return tree_node.has_color_override(prop)
-			1: # Constants
-				return tree_node.has_constant_override(prop)
-			2: # Fonts
-				return tree_node.has_font_override(prop)
-			3: # Icons
-				return tree_node.has_icon_override(prop)
-			4: # Stylebox
-				return tree_node.has_stylebox_override(prop)
+func _CustomTheme() -> void:
+	if not _root:
+		return
+	
+	var header : TreeItem = _root.get_children()
+	if not header:
+		return
+	
+	var bg : Color = get_color("header_background")
+	var label : Color = get_color("header_label")
+	var columns = _ColumnCount()
+	for i in range(columns):
+		header.set_custom_bg_color(columns, bg)
+		header.set_custom_color(columns, label)
+
+func _IsThemeProperty(property : String, stype : String) -> bool:
+	var idx : int = property.find("/")
+	if idx > 0:
+		var prefix : String = property.substr(0, idx)
+		return prefix == ("custom_%s"%[stype])
 	return false
 
 func _WatchForInput(input_focus : int) -> void:
@@ -487,17 +499,26 @@ func _ClearList(clear_root : bool = false) -> void:
 
 func _BuildListHeader() -> void:
 	if tree_node != null and _root != null:
+		var bg : Color = get_color("header_background")
+		var label : Color = get_color("header_label")
 		var header : TreeItem = tree_node.create_item(_root)
+		header.set_custom_bg_color(_COLUMN_DESCRIPTION, bg)
 		header.set_selectable(_COLUMN_DESCRIPTION, false)
 		if _binding_column[_INPUT_KEY] >= 0:
+			header.set_custom_bg_color(_binding_column[_INPUT_KEY], bg)
+			header.set_icon_modulate(_binding_column[_INPUT_KEY], label)
 			header.set_selectable(_binding_column[_INPUT_KEY], false)
 			header.set_text_align(_binding_column[_INPUT_KEY], TreeItem.ALIGN_CENTER)
 			header.set_icon(_binding_column[_INPUT_KEY], preload("res://addons/eim/icons/input_keyboard.svg"))
 		if _binding_column[_INPUT_MOUSE] >= 0:
+			header.set_custom_bg_color(_binding_column[_INPUT_MOUSE], bg)
+			header.set_icon_modulate(_binding_column[_INPUT_MOUSE], label)
 			header.set_selectable(_binding_column[_INPUT_MOUSE], false)
 			header.set_text_align(_binding_column[_INPUT_MOUSE], TreeItem.ALIGN_CENTER)
 			header.set_icon(_binding_column[_INPUT_MOUSE], preload("res://addons/eim/icons/input_mouse.svg"))
 		if _binding_column[_INPUT_JOY_AXIS] >= 0:
+			header.set_custom_bg_color(_binding_column[_INPUT_JOY_AXIS], bg)
+			header.set_icon_modulate(_binding_column[_INPUT_JOY_AXIS], label)
 			header.set_selectable(_binding_column[_INPUT_JOY_AXIS], false)
 			header.set_text_align(_binding_column[_INPUT_JOY_AXIS], TreeItem.ALIGN_CENTER)
 			if _merge_joy_button_axis:
@@ -505,6 +526,8 @@ func _BuildListHeader() -> void:
 			else:
 				header.set_icon(_binding_column[_INPUT_JOY_AXIS], preload("res://addons/eim/icons/input_joypad_axii.svg"))
 				
+				header.set_custom_bg_color(_binding_column[_INPUT_JOY_BUTTON], bg)
+				header.set_icon_modulate(_binding_column[_INPUT_JOY_BUTTON], label)
 				header.set_selectable(_binding_column[_INPUT_JOY_BUTTON], false)
 				header.set_text_align(_binding_column[_INPUT_JOY_BUTTON], TreeItem.ALIGN_CENTER)
 				header.set_icon(_binding_column[_INPUT_JOY_BUTTON], preload("res://addons/eim/icons/input_joypad_buttons.svg"))
@@ -676,6 +699,101 @@ func get_joypad_axis_lookup(type_name : String, idx : int) -> Dictionary:
 			res.text = _joyaxis_lut[type_name][idx].text
 			res.icon = _joyaxis_lut[type_name][idx].icon
 	return res
+
+func add_color_override(property : String, value) -> void:
+	if not _set("custom_colors/%s"%[property], value):
+		.add_color_override(property, value)
+
+func has_color_override(property : String) -> bool:
+	var prop_name : String = "custom_colors/%s"%[property]
+	match property:
+		"custom_colors/header_background":
+			return _theme_header_bg != null
+		"custom_colors/header_label":
+			return _theme_header_label != null
+	if _tw.has_color_override(property):
+		return true
+	return .has_color_override(property)
+
+func get_color(property : String, theme_type : String = "") -> Color:
+	var prop_name : String = "custom_colors/%s"%[property]
+	match prop_name:
+		"custom_colors/header_background":
+			if _theme_header_bg == null:
+				if .has_color("header_background", _tw.default_theme_type):
+					return .get_color("header_background", _tw.default_theme_type)
+				return _THEME_HEADER_BG_DEFAULT
+			return _theme_header_bg
+		"custom_colors/header_label":
+			if _theme_header_label == null:
+				if .has_color("header_label", _tw.default_theme_type):
+					return .get_color("header_label", _tw.default_theme_type)
+				return _THEME_HEADER_LABEL_DEFAULT
+			return _theme_header_label
+	var c : Color = _tw.get_color(property, theme_type)
+	if c == Color(0,0,0,1):
+		return .get_color(property, theme_type)
+	return c
+
+func add_constant_override(property : String, value) -> void:
+	if not _set("custom_colors/%s"%[property], value):
+		.add_constant_override(property, value)
+
+func has_constant_override(property : String) -> bool:
+	if _tw.has_constant_override(property):
+		return true
+	return .has_constant_override(property)
+
+func get_constant(property : String, theme_type : String = "") -> int:
+	var v : int = _tw.get_constant(property, theme_type)
+	if v == 0:
+		return .get_constant(property, theme_type)
+	return v
+
+func add_font_override(property : String, value) -> void:
+	if not _set("custom_fonts/%s"%[property], value):
+		.add_font_override(property, value)
+
+func has_font_override(property : String) -> bool:
+	if _tw.has_font_override(property):
+		return true
+	return .has_font_override(property)
+
+func get_font(property : String, theme_type : String = "") -> Font:
+	var v : Font = _tw.get_font(property, theme_type)
+	if v == null:
+		return .get_font(property, theme_type)
+	return v
+
+func add_icon_override(property : String, value) -> void:
+	if not _set("custom_icons/%s"%[property], value):
+		.add_icon_override(property, value)
+
+func has_icon_override(property : String) -> bool:
+	if _tw.has_icon_override(property):
+		return true
+	return .has_icon_override(property)
+
+func get_icon(property : String, theme_type : String = "") -> Texture:
+	var v : Texture = _tw.get_icon(property, theme_type)
+	if v == null:
+		return .get_icon(property, theme_type)
+	return v
+
+func add_stylebox_override(property : String, value) -> void:
+	if not _set("custom_styles/%s"%[property], value):
+		.add_stylebox_override(property, value)
+
+func has_stylebox_override(property : String) -> bool:
+	if _tw.has_stylebox_override(property):
+		return true
+	return .has_stylebox_override(property)
+
+func get_stylebox(property : String, theme_type : String = "") -> StyleBox:
+	var v : StyleBox = _tw.get_stylebox(property, theme_type)
+	if v == null:
+		return .get_stylebox(property, theme_type)
+	return v
 
 # -----------------------------------------------------------------------------
 # Handler Methods
