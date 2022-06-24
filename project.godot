@@ -106,7 +106,7 @@ window/size/height=1080
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/imrp/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/eim/plugin.cfg", "res://addons/imrp/plugin.cfg" )
 
 [input]
 

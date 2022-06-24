@@ -118,7 +118,6 @@ rect_min_size = Vector2( 0, 128 )
 size_flags_vertical = 3
 items = [ "ui_accept", null, false, "ui_select", null, false, "ui_cancel", null, false, "ui_focus_next", null, false, "ui_focus_prev", null, false, "ui_left", null, false, "ui_right", null, false, "ui_up", null, false, "ui_down", null, false, "ui_page_up", null, false, "ui_page_down", null, false, "ui_home", null, false, "ui_end", null, false, "option_toggle", null, false ]
 
-[connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="text_changed" from="Inputs/Refresh/ActionFilter/LineEdit" to="." method="_on_ActionFilter_text_changed"]
 [connection signal="toggled" from="Inputs/Refresh/ActionFilter/Begins" to="." method="_on_ActionFilter_Begins_toggled"]
 [connection signal="toggled" from="Inputs/Refresh/ActionFilter/Caseless" to="." method="_on_ActionFilter_Caseless_toggled"]

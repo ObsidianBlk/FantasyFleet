@@ -79,6 +79,7 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 margin_right = 1912.0
 margin_bottom = 20.0
+default_group_name = "game_inputs"
 
 [node name="InputBinder" parent="VBC/InputMapScroll/VBC" instance=ExtResource( 2 )]
 anchor_right = 0.0

@@ -10,6 +10,8 @@ signal group_selected(group_name)
 # Constants
 # -------------------------------------------------------------------------
 const COLUMN_DESCRIPTION_COLOR : Color = Color(0.4, 0.4, 0.4)
+const COLOR_ICON_ACTION_WARNING : Color = Color.crimson#Color(0.647059, 0.333333, 0.490196)
+const COLOR_ICON_ACTION_DEFAULT : Color = Color.white
 
 # -------------------------------------------------------------------------
 # Variables
@@ -56,6 +58,9 @@ func _ready() -> void:
 	
 	EIM.connect("initialized", self, "_on_eim_initialized")
 	EIM.connect("deconstructed", self, "_on_eim_deconstructed")
+	connect("visibility_changed", self, "_on_visibility_changed")
+	connect("focus_entered", self, "_on_entered")
+	connect("mouse_entered", self, "_on_entered")
 	tree_node.connect("button_pressed", self, "_on_tree_button_pressed")
 	tree_node.connect("item_edited", self, "_on_item_edited")
 	tree_node.connect("item_selected", self, "_on_item_selected")
@@ -119,12 +124,20 @@ func _AddActionToGroup(tree_item_group : TreeItem, action_data : Dictionary) -> 
 	
 	if EIM.action_has_key_inputs(action_data.name):
 		tree_item_action.set_icon(2, preload("res://addons/eim/icons/input_keyboard.svg"))
+		if EIM.action_key_input_count(action_data.name) > 1:
+			tree_item_action.set_icon_modulate(2, COLOR_ICON_ACTION_WARNING)
 	if EIM.action_has_mouse_inputs(action_data.name):
 		tree_item_action.set_icon(3, preload("res://addons/eim/icons/input_mouse.svg"))
+		if EIM.action_mouse_input_count(action_data.name) > 1:
+			tree_item_action.set_icon_modulate(3, COLOR_ICON_ACTION_WARNING)
 	if EIM.action_has_joypad_button_inputs(action_data.name):
 		tree_item_action.set_icon(4, preload("res://addons/eim/icons/input_joypad_buttons.svg"))
+		if EIM.action_joypad_button_input_count(action_data.name) > 1:
+			tree_item_action.set_icon_modulate(4, COLOR_ICON_ACTION_WARNING)
 	if EIM.action_has_joypad_axii_inputs(action_data.name):
 		tree_item_action.set_icon(5, preload("res://addons/eim/icons/input_joypad_axii.svg"))
+		if EIM.action_joypad_axii_input_count(action_data.name) > 1:
+			tree_item_action.set_icon_modulate(5, COLOR_ICON_ACTION_WARNING)
 	
 	tree_item_action.add_button(
 		7, preload("res://addons/eim/icons/big_x.svg"), 
@@ -133,7 +146,6 @@ func _AddActionToGroup(tree_item_group : TreeItem, action_data : Dictionary) -> 
 	)
 	tree_item_action.set_metadata(0, {"group":group_name, "action":action_data.name})
 	return tree_item_action
-	
 
 
 func _BuildTree() -> void:
@@ -164,6 +176,71 @@ func _ClearTree() -> void:
 		_tree_root.remove_child(item)
 		item.free()
 		_ClearTree()
+
+
+func _RefreshTreeGroupAction(action_item : TreeItem) -> bool:
+	var action_data = action_item.get_metadata(0)
+	if EIM.has_action(action_data.action):
+		if EIM.is_action_in_group(action_data.group, action_data.action):
+			if EIM.action_has_key_inputs(action_data.action):
+				action_item.set_icon(2, preload("res://addons/eim/icons/input_keyboard.svg"))
+				if EIM.action_key_input_count(action_data.action) > 1:
+					action_item.set_icon_modulate(2, COLOR_ICON_ACTION_WARNING)
+				else:
+					action_item.set_icon_modulate(2, COLOR_ICON_ACTION_DEFAULT)
+			else:
+				action_item.set_icon(2, null)
+				action_item.set_icon_modulate(2, COLOR_ICON_ACTION_DEFAULT)
+			
+			if EIM.action_has_mouse_inputs(action_data.action):
+				action_item.set_icon(3, preload("res://addons/eim/icons/input_mouse.svg"))
+				if EIM.action_mouse_input_count(action_data.action) > 1:
+					action_item.set_icon_modulate(3, COLOR_ICON_ACTION_WARNING)
+				else:
+					action_item.set_icon_modulate(3, COLOR_ICON_ACTION_DEFAULT)
+			else:
+				action_item.set_icon(3, null)
+				action_item.set_icon_modulate(3, COLOR_ICON_ACTION_DEFAULT)
+			
+			if EIM.action_has_joypad_button_inputs(action_data.action):
+				action_item.set_icon(4, preload("res://addons/eim/icons/input_joypad_buttons.svg"))
+				if EIM.action_joypad_button_input_count(action_data.action) > 1:
+					action_item.set_icon_modulate(4, COLOR_ICON_ACTION_WARNING)
+				else:
+					action_item.set_icon_modulate(4, COLOR_ICON_ACTION_DEFAULT)
+			else:
+				action_item.set_icon(4, null)
+				action_item.set_icon_modulate(4, COLOR_ICON_ACTION_DEFAULT)
+			
+			if EIM.action_has_joypad_axii_inputs(action_data.action):
+				action_item.set_icon(5, preload("res://addons/eim/icons/input_joypad_axii.svg"))
+				if EIM.action_joypad_axii_input_count(action_data.action) > 1:
+					action_item.set_icon_modulate(5, COLOR_ICON_ACTION_WARNING)
+				else:
+					action_item.set_icon_modulate(5, COLOR_ICON_ACTION_DEFAULT)
+			else:
+				action_item.set_icon(5, null)
+				action_item.set_icon_modulate(5, COLOR_ICON_ACTION_DEFAULT)
+			return true
+	return false
+
+func _RefreshTree() -> void:
+	if _tree_root == null:
+		return
+	
+	var group_item : TreeItem = _tree_root.get_children()
+	while group_item != null:
+		if typeof(group_item.get_metadata(0)) == TYPE_STRING:
+			var action_item : TreeItem = group_item.get_children()
+			var clear_list : Array = []
+			while action_item != null:
+				if not _RefreshTreeGroupAction(action_item):
+					clear_list.append(action_item)
+				action_item = action_item.get_next()
+			for item in clear_list:
+				group_item.remove_child(item)
+				item.free()
+			group_item = group_item.get_next()
 
 
 func _ActionFilterPassed(action_name : String) -> bool:
@@ -279,14 +356,16 @@ func _on_action_item_activated(idx : int):
 func _on_ActionFilter_text_changed(new_text : String) -> void:
 	_RefreshInputList()
 
-func _on_visibility_changed():
-	# TODO: Not sure this is the best place/signal, but letting ride for now!
+func _on_entered() -> void:
+	_RefreshTree()
 	_RefreshInputList()
 
+func _on_visibility_changed():
+	if visible:
+		_on_entered()
 
 func _on_ActionFilter_Begins_toggled(button_pressed : bool) -> void:
 	_RefreshInputList()
-
 
 func _on_ActionFilter_Caseless_toggled(button_pressed : bool) -> void:
 	_RefreshInputList()

@@ -123,6 +123,17 @@ func _AreActionsUnique(action_name1 : String, action_name2 : String) -> bool:
 		return true
 	return false
 
+func _GetActionEvents(action_name : String) -> Array:
+	if Engine.editor_hint:
+		var key = "%s%s"%[SUBPROP_INPUT, action_name]
+		if ProjectSettings.has_setting(key):
+			var action = ProjectSettings.get_setting(key)
+			if action:
+				return action.events
+	elif InputMap.has_action(action_name):
+		return InputMap.get_action_list(action_name)
+	return []
+
 func _GetProjectSettingsAction(action_name : String):
 	if not action_name.begins_with(SUBPROP_INPUT):
 		action_name = SUBPROP_INPUT + action_name
@@ -532,9 +543,17 @@ func replace_group_action_input(group_name : String, action_name : String, old_i
 					if event.button_index == old_input.button_index:
 						event.button_index = new_input.button_index
 
+func has_action(action_name : String) -> bool:
+	if Engine.editor_hint:
+		var key = "%s%s"%[SUBPROP_INPUT, action_name]
+		if ProjectSettings.has_setting(key):
+			var action = ProjectSettings.get_setting(key)
+			return (typeof(action) == TYPE_DICTIONARY and "events" in action)
+		return false
+	return InputMap.has_action(action_name)
 
 func action_has_input(action_name : String, input : InputEvent) -> bool:
-	if not InputMap.has_action(action_name):
+	if not has_action(action_name):
 		return false
 	
 	var input_class : String = input.get_class()
@@ -559,27 +578,47 @@ func action_has_input(action_name : String, input : InputEvent) -> bool:
 
 
 func action_has_input_type(action_name : String, input_type : String) -> bool:
-	if InputMap.has_action(action_name):
-		for event in InputMap.get_action_list(action_name):
-			if event.get_class() == input_type:
-				return true
+	var events = _GetActionEvents(action_name)
+	for event in events:
+		if event.get_class() == input_type:
+			return true
 	return false
+
+func action_input_type_count(action_name : String, input_type : String) -> int:
+	var count : int = 0
+	var events : Array = _GetActionEvents(action_name)
+	for event in events:
+		if event.get_class() == input_type:
+			count += 1
+	return count
 
 func action_has_key_inputs(action_name : String) -> bool:
 	return action_has_input_type(action_name, "InputEventKey")
 
+func action_key_input_count(action_name : String) -> int:
+	return action_input_type_count(action_name, "InputEventKey")
+
 func action_has_mouse_inputs(action_name : String) -> bool:
 	return action_has_input_type(action_name, "InputEventMouseButton")
 
+func action_mouse_input_count(action_name : String) -> int:
+	return action_input_type_count(action_name, "InputEventMouseButton")
 
 func action_has_joypad_button_inputs(action_name : String) -> bool:
 	return action_has_input_type(action_name, "InputEventJoypadButton")
 
+func action_joypad_button_input_count(action_name : String) -> int:
+	return action_input_type_count(action_name, "InputEventJoypadButton")
+
 func action_has_joypad_axii_inputs(action_name : String) -> bool:
 	return action_has_input_type(action_name, "InputEventJoypadMotion")
 
+func action_joypad_axii_input_count(action_name : String) -> int:
+	return action_input_type_count(action_name, "InputEventJoypadMotion")
+
 func reset_actions_to_default() -> void:
-	InputMap.load_from_globals()
+	if not Engine.editor_hint:
+		InputMap.load_from_globals()
 
 # -----------------------------------------------------------------------------
 # Joypad-Related Public Methods

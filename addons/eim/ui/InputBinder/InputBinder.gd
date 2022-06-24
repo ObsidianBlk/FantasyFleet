@@ -211,6 +211,9 @@ func _ready() -> void:
 	tree_node.connect("resized", self, "_UpdateColumnSpacing")
 	tree_node.connect("focus_entered", self, "_on_focus_entered")
 	tree_node.connect("focus_exited", self, "_on_focus_exited")
+
+	if _group_name != "" and _root == null:
+		_BuildList()
 #	var props = tree_node.get_property_list()
 #	var prev_prop = null
 #	for prop in props:

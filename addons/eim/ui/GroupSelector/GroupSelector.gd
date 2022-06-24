@@ -10,6 +10,7 @@ signal group_selected(group_name)
 # Export Variables
 # -------------------------------------------------------------------------
 export var placeholder_text : String = "[ No Group Selected ]"
+export var default_group_name : String = ""
 
 # -------------------------------------------------------------------------
 # Variables
@@ -41,13 +42,17 @@ func _UpdateGroupList() -> void:
 		var menu : PopupMenu = grouplist_node.get_popup()
 		menu.clear()
 		
+		var default_idx : int = -1
 		var glist : Array = EIM.get_group_list()
 		for i in range(glist.size()):
 			var group_name : String = glist[i]
 			var group_readable_name : String = _GroupReadable(group_name)
 			menu.add_item(group_readable_name, i)
 			menu.set_item_metadata(i, {"name": group_name, "readable": group_readable_name})
-		
+			if default_group_name != "" and group_name == default_group_name:
+				default_idx = i
+		if default_idx >= 0:
+			call_deferred("_on_index_pressed", default_idx, menu)
 
 
 # -------------------------------------------------------------------------
