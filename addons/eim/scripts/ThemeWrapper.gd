@@ -72,6 +72,16 @@ func _ControlHasProperty(c : Control, type : int, property : String) -> bool:
 			return true
 	return false
 
+func _GetControlWithProperty(type : int, property : String) -> Control:
+	for ref in _controls:
+		var c : Control = ref.get_ref()
+		if not c:
+			continue
+		
+		if _ControlHasProperty(c, TYPE.Colors, property):
+			return c
+	return null
+
 func _BuildControlProperties(state : Dictionary) -> void:
 	for ref in _controls:
 		var c = ref.get_ref()
@@ -177,36 +187,38 @@ func has_color_override(property : String) -> bool:
 func add_color_override(property : String, value) -> void:
 	if value != null and typeof(value) != TYPE_COLOR:
 		return
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Colors, property):
-			if value == null:
-				property = "custom_colors/%s"%[property]
-				c.set(property, null)
-			else:
-				print("Property: ", property)
-				c.add_color_override(property, value)
-			return
+	var c : Control = _GetControlWithProperty(TYPE.Colors, property)
+	if c != null:
+		if value == null:
+			property = "custom_colors/%s"%[property]
+			c.set(property, null)
+		else:
+			c.add_color_override(property, value)
+		return
 
 func get_color(property : String, theme_type : String = "") -> Color:
 	if theme_type == "":
 		theme_type = default_theme_type
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Colors, property):
-			if c.has_color_override(property):
-				return c.get_color(property)
-			elif theme_type != "" and c.has_color(property, theme_type):
-				return c.get_color(property, theme_type)
-			else:
-				return c.get_color(property)
+	var c : Control = _GetControlWithProperty(TYPE.Colors, property)
+	if c != null:
+		if c.has_color_override(property):
+			return c.get_color(property)
+		elif theme_type != "" and c.has_color(property, theme_type):
+			return c.get_color(property, theme_type)
+		return c.get_color(property)
 	return Color(0,0,0,1)
+
+func has_color(property : String, theme_type : String = "") -> bool:
+	if theme_type == "":
+		theme_type = default_theme_type
+	var c : Control = _GetControlWithProperty(TYPE.Colors, property)
+	if c != null:
+		if c.has_color_override(property):
+			return true
+		if theme_type != "":
+			return c.has_color(property, theme_type)
+		return c.has_color(property)
+	return false
 
 func has_constant_override(property : String) -> bool:
 	for ref in _controls:
@@ -219,35 +231,37 @@ func has_constant_override(property : String) -> bool:
 func add_constant_override(property : String, value) -> void:
 	if value != null and typeof(value) != TYPE_INT:
 		return
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Constants, property):
-			if value == null:
-				property = "custom_constants/%s"%[property]
-				c.set(property, null)
-			else:
-				c.add_constant_override(property, value)
-			return
+	var c : Control = _GetControlWithProperty(TYPE.Constants, property)
+	if c != null:
+		if value == null:
+			property = "custom_constants/%s"%[property]
+			c.set(property, null)
+		else:
+			c.add_constant_override(property, value)
 
 func get_constant(property : String, theme_type : String = "") -> int:
 	if theme_type == "":
 		theme_type = default_theme_type
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Constants, property):
-			if c.has_constant_override(property):
-				return c.get_constant(property)
-			elif theme_type != "" and c.has_constant(property, theme_type):
-				return c.get_constant(property, theme_type)
-			else:
-				return c.get_constant(property)
+	var c : Control = _GetControlWithProperty(TYPE.Constants, property)
+	if c != null:
+		if c.has_constant_override(property):
+			return c.get_constant(property)
+		elif theme_type != "" and c.has_constant(property, theme_type):
+			return c.get_constant(property, theme_type)
+		return c.get_constant(property)
 	return 0
+
+func has_constant(property : String, theme_type : String = "") -> bool:
+	if theme_type == "":
+		theme_type = default_theme_type
+	var c : Control = _GetControlWithProperty(TYPE.Constants, property)
+	if c != null:
+		if c.has_constant_override(property):
+			return true
+		if theme_type != "":
+			return c.has_constant(property, theme_type)
+		return c.has_constant(property)
+	return false
 
 func has_font_override(property : String) -> bool:
 	for ref in _controls:
@@ -260,35 +274,37 @@ func has_font_override(property : String) -> bool:
 func add_font_override(property : String, value) -> void:
 	if value != null and not (value is Font):
 		return
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Fonts, property):
-			if value == null:
-				property = "custom_fonts/%s"%[property]
-				c.set(property, null)
-			else:
-				c.add_font_override(property, value)
-			return
+	var c : Control = _GetControlWithProperty(TYPE.Fonts, property)
+	if c != null:
+		if value == null:
+			property = "custom_fonts/%s"%[property]
+			c.set(property, null)
+		else:
+			c.add_font_override(property, value)
 
 func get_font(property : String, theme_type : String = "") -> Font:
 	if theme_type == "":
 		theme_type = default_theme_type
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Fonts, property):
-			if c.has_font_override(property):
-				return c.get_font(property)
-			elif theme_type != "" and c.has_font(property, theme_type):
-				return c.get_font(property, theme_type)
-			else:
-				return c.get_font(property)
+	var c : Control = _GetControlWithProperty(TYPE.Fonts, property)
+	if c != null:
+		if c.has_font_override(property):
+			return c.get_font(property)
+		elif theme_type != "" and c.has_font(property, theme_type):
+			return c.get_font(property, theme_type)
+		return c.get_font(property)
 	return null
+
+func has_font(property : String, theme_type : String = "") -> bool:
+	if theme_type == "":
+		theme_type = default_theme_type
+	var c : Control = _GetControlWithProperty(TYPE.Fonts, property)
+	if c != null:
+		if c.has_font_override(property):
+			return true
+		if theme_type != "":
+			return c.has_font(property, theme_type)
+		return c.has_font(property)
+	return false
 
 func has_icon_override(property : String) -> bool:
 	for ref in _controls:
@@ -301,35 +317,37 @@ func has_icon_override(property : String) -> bool:
 func add_icon_override(property : String, value) -> void:
 	if value != null and not (value is Texture):
 		return
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Icons, property):
-			if value == null:
-				property = "custom_icons/%s"%[property]
-				c.set(property, null)
-			else:
-				c.add_icon_override(property, value)
-			return
+	var c : Control = _GetControlWithProperty(TYPE.Icons, property)
+	if c != null:
+		if value == null:
+			property = "custom_icons/%s"%[property]
+			c.set(property, null)
+		else:
+			c.add_icon_override(property, value)
 
 func get_icon(property : String, theme_type : String = "") -> Texture:
 	if theme_type == "":
 		theme_type = default_theme_type
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Fonts, property):
-			if c.has_icon_override(property):
-				return c.get_icon(property)
-			elif theme_type != "" and c.has_icon(property, theme_type):
-				return c.get_icon(property, theme_type)
-			else:
-				return c.get_icon(property)
+	var c : Control = _GetControlWithProperty(TYPE.Icons, property)
+	if c != null:
+		if c.has_icon_override(property):
+			return c.get_icon(property)
+		elif theme_type != "" and c.has_icon(property, theme_type):
+			return c.get_icon(property, theme_type)
+		return c.get_icon(property)
 	return null
+
+func has_icon(property : String, theme_type : String = "") -> bool:
+	if theme_type == "":
+		theme_type = default_theme_type
+	var c : Control = _GetControlWithProperty(TYPE.Icons, property)
+	if c != null:
+		if c.has_icon_override(property):
+			return true
+		if theme_type != "":
+			return c.has_icon(property, theme_type)
+		return c.has_icon(property)
+	return false
 
 func has_stylebox_override(property : String) -> bool:
 	for ref in _controls:
@@ -342,35 +360,37 @@ func has_stylebox_override(property : String) -> bool:
 func add_stylebox_override(property : String, value) -> void:
 	if value != null and not (value is StyleBox):
 		return
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Styles, property):
-			if value == null:
-				property = "custom_styles/%s"%[property]
-				c.set(property, null)
-			else:
-				c.add_stylebox_override(property, value)
-			return
+	var c : Control = _GetControlWithProperty(TYPE.Styles, property)
+	if c != null:
+		if value == null:
+			property = "custom_styles/%s"%[property]
+			c.set(property, null)
+		else:
+			c.add_stylebox_override(property, value)
 
 func get_stylebox(property : String, theme_type : String = "") -> StyleBox:
 	if theme_type == "":
 		theme_type = default_theme_type
-	for ref in _controls:
-		var c : Control = ref.get_ref()
-		if not c:
-			continue
-		
-		if _ControlHasProperty(c, TYPE.Fonts, property):
-			if c.has_stylebox_override(property):
-				return c.get_stylebox(property)
-			elif theme_type != "" and c.has_stylebox(property, theme_type):
-				return c.get_stylebox(property, theme_type)
-			else:
-				return c.get_stylebox(property)
+	var c : Control = _GetControlWithProperty(TYPE.Styles, property)
+	if c != null:
+		if c.has_stylebox_override(property):
+			return c.get_stylebox(property)
+		elif theme_type != "" and c.has_stylebox(property, theme_type):
+			return c.get_stylebox(property, theme_type)
+		return c.get_stylebox(property)
 	return null
+
+func has_stylebox(property : String, theme_type : String = "") -> bool:
+	if theme_type == "":
+		theme_type = default_theme_type
+	var c : Control = _GetControlWithProperty(TYPE.Styles, property)
+	if c != null:
+		if c.has_stylebox_override(property):
+			return true
+		if theme_type != "":
+			return c.has_stylebox(property, theme_type)
+		return c.has_stylebox(property)
+	return false
 
 func get_property(property : String):
 	#var type : int = get_property_type(property)

@@ -720,23 +720,36 @@ func has_color_override(property : String) -> bool:
 
 func get_color(property : String, theme_type : String = "") -> Color:
 	var prop_name : String = "custom_colors/%s"%[property]
-	match prop_name:
-		"custom_colors/header_background":
-			if _theme_header_bg == null:
-				if .has_color("header_background", _tw.default_theme_type):
-					return .get_color("header_background", _tw.default_theme_type)
-				return _THEME_HEADER_BG_DEFAULT
-			return _theme_header_bg
-		"custom_colors/header_label":
-			if _theme_header_label == null:
-				if .has_color("header_label", _tw.default_theme_type):
-					return .get_color("header_label", _tw.default_theme_type)
-				return _THEME_HEADER_LABEL_DEFAULT
-			return _theme_header_label
+	if theme_type == "":
+		match prop_name:
+			"custom_colors/header_background":
+				if _theme_header_bg == null:
+					if .has_color("header_background", _tw.default_theme_type):
+						return .get_color("header_background", _tw.default_theme_type)
+					return _THEME_HEADER_BG_DEFAULT
+				return _theme_header_bg
+			"custom_colors/header_label":
+				if _theme_header_label == null:
+					if .has_color("header_label", _tw.default_theme_type):
+						return .get_color("header_label", _tw.default_theme_type)
+					return _THEME_HEADER_LABEL_DEFAULT
+				return _theme_header_label
 	var c : Color = _tw.get_color(property, theme_type)
 	if c == Color(0,0,0,1):
 		return .get_color(property, theme_type)
 	return c
+
+func has_color(property : String, theme_type : String = "") -> bool:
+	var prop_name : String = "custom_colors/%s"%[property]
+	if theme_type == "":
+		match prop_name:
+			"custom_colors/header_background":
+				return true
+			"custom_colors/header_label":
+				return true
+	if not _tw.has_color(property, theme_type):
+		return .has_color(property, theme_type)
+	return true
 
 func add_constant_override(property : String, value) -> void:
 	if not _set("custom_colors/%s"%[property], value):
@@ -753,6 +766,11 @@ func get_constant(property : String, theme_type : String = "") -> int:
 		return .get_constant(property, theme_type)
 	return v
 
+func has_constant(property : String, theme_type : String = "") -> bool:
+	if not _tw.has_constant(property, theme_type):
+		return .has_constant(property, theme_type)
+	return true
+
 func add_font_override(property : String, value) -> void:
 	if not _set("custom_fonts/%s"%[property], value):
 		.add_font_override(property, value)
@@ -768,6 +786,11 @@ func get_font(property : String, theme_type : String = "") -> Font:
 		return .get_font(property, theme_type)
 	return v
 
+func has_font(property : String, theme_type : String = "") -> bool:
+	if not _tw.has_font(property, theme_type):
+		return .has_font(property, theme_type)
+	return true
+
 func add_icon_override(property : String, value) -> void:
 	if not _set("custom_icons/%s"%[property], value):
 		.add_icon_override(property, value)
@@ -782,6 +805,11 @@ func get_icon(property : String, theme_type : String = "") -> Texture:
 	if v == null:
 		return .get_icon(property, theme_type)
 	return v
+
+func has_icon(property : String, theme_type : String = "") -> bool:
+	if not _tw.has_icon(property, theme_type):
+		return .has_icon(property, theme_type)
+	return true
 
 func add_stylebox_override(property : String, value) -> void:
 	if not _set("custom_styles/%s"%[property], value):
