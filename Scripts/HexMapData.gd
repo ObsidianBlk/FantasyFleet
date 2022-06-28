@@ -175,6 +175,11 @@ func get_entity_by_uuid(uuid : String) -> Entity:
 		return _entities[uuid]
 	return null
 
+func get_entities_in_cell(cell : HexCell) -> Array:
+	if cell.qrs in _cells:
+		return _cells[cell.qrs].duplicate()
+	return []
+
 func get_entities_within_range(point : Vector2, r : float) -> Dictionary:
 	var pcell = HexCell.new(point, true)
 	

@@ -13,6 +13,7 @@ signal move(dir, amount)
 # "Export" Variables
 # -------------------------------------------------------------------------
 var _uuid : String = ""
+var _type_name : String = ""
 var _hex : HexCell = HexCell.new()
 var _blocking_view : bool = false
 var _blocking_cell : bool = false
@@ -28,6 +29,8 @@ func _get(property : String):
 	match property:
 		"uuid":
 			return _uuid
+		"type_name":
+			return _type_name
 		"hex":
 			return _hex
 		"qrs":
@@ -47,6 +50,10 @@ func _set(property : String, value) -> bool:
 		"uuid":
 			if typeof(value) == TYPE_STRING and _uuid == "":
 				_uuid = value
+			else : success = false
+		"type_name":
+			if typeof(value) == TYPE_STRING and _type_name == "":
+				_type_name = value
 			else : success = false
 		"hex":
 			if value is HexCell:
@@ -89,6 +96,11 @@ func _get_property_list() -> Array:
 	var props : Array = [
 		{
 			name = "uuid",
+			type = TYPE_STRING,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "type_name",
 			type = TYPE_STRING,
 			usage = PROPERTY_USAGE_DEFAULT
 		},

@@ -1,5 +1,13 @@
 extends Spatial
 
+# -------------------------------------------------------------------------
+# Constants
+# -------------------------------------------------------------------------
+const _GROUP_ENTITY = "Entity3D"
+const _SIGNALS_HEXMAPDATA = [
+	["entity_added", "_on_entity_added"],
+	["entity_removed", "_on_entity_removed"]
+]
 
 # -------------------------------------------------------------------------
 # Export Variables
@@ -28,13 +36,18 @@ onready var _meshinst_node : MeshInstance = $MeshInstance
 # -------------------------------------------------------------------------
 func set_map_data(data : Resource) -> void:
 	if data == null or data is HexMapData:
+		if map_data != null:
+			_DisconnectHexMapData()
+			_ClearAllEntityNodes()
 		map_data = data
-		if _grid_material_normal:
-			_grid_material_normal.albedo_color = map_data.color_normal
-		if _grid_material_highlight:
-			_grid_material_highlight.albedo_color = map_data.color_highlight
-		if _grid_material_focus:
-			_grid_material_focus.albedo_color = map_data.color_focus
+		if map_data != null:
+			_ConnectHexMapData()
+			if _grid_material_normal:
+				_grid_material_normal.albedo_color = map_data.color_normal
+			if _grid_material_highlight:
+				_grid_material_highlight.albedo_color = map_data.color_highlight
+			if _grid_material_focus:
+				_grid_material_focus.albedo_color = map_data.color_focus
 
 
 # -------------------------------------------------------------------------
@@ -61,12 +74,12 @@ func _process(_delta : float) -> void:
 			_BuildMesh()
 
 func _physics_process(_delta) -> void:
-	if active_camera_group != "" and map_data != null:
-		var cams = get_tree().get_nodes_in_group(active_camera_group)
-		if cams.size() > 0:
+	if map_data != null:
+		var cam = _GetActiveCamera()
+		if cam != null:
 			var p : Plane = Plane(Vector3.UP, 0.0)
-			var from : Vector3 = cams[0].project_ray_origin(_last_mouse_pos)
-			var dir : Vector3 = cams[0].project_ray_normal(_last_mouse_pos)
+			var from : Vector3 = cam.project_ray_origin(_last_mouse_pos)
+			var dir : Vector3 = cam.project_ray_normal(_last_mouse_pos)
 			#print("Last Mouse Pos: ", _last_mouse_pos, " | From: ", from, " | Dir: ", dir)
 			var intersect = p.intersects_ray(from, dir)
 			if intersect != null:
@@ -80,16 +93,27 @@ func _physics_process(_delta) -> void:
 # -------------------------------------------------------------------------
 # Private Methods
 # -------------------------------------------------------------------------
+func _GetActiveCamera():
+	if active_camera_group != "":
+		var cams = get_tree().get_nodes_in_group(active_camera_group)
+		if cams.size() > 0:
+			return cams[0]
+	return null
+
+
 func _BuildMesh() -> void:
 	var st : SurfaceTool = SurfaceTool.new()
-	var origin : HexCell = HexCell.new()
-	var region : Array = origin.get_region(5)
 	var size : float = map_data.cell_size
 	if _meshinst_node.mesh != null:
 		_meshinst_node.mesh.clear_surfaces()
-	for cell in region:
-		if not cell.eq(_mouse_cell):
-			_BuildHex(st, cell, size, _grid_material_normal)
+
+	var rids : Array = HexMap.get_region_ids()
+	for rid in rids:
+		var region : Array = HexMap.get_region(rid)
+		for cell in region:
+			if not cell.eq(_mouse_cell):
+				_BuildHex(st, cell, size, _grid_material_normal)
+	
 	if Game.view_mode == Game.VIEW.MODE_3D and _mouse_cell != null:
 		_BuildHex(st, _mouse_cell, size, _grid_material_highlight)
 
@@ -114,6 +138,36 @@ func _BuildHex(st : SurfaceTool, cell : HexCell, size : float, mat : Material) -
 		_meshinst_node.mesh = st.commit()
 	else:
 		_meshinst_node.mesh = st.commit(_meshinst_node.mesh)
+
+func _ConnectHexMapData() -> void:
+	if map_data != null:
+		for info in _SIGNALS_HEXMAPDATA:
+			if not map_data.is_connected(info[0], self, info[1]):
+				map_data.connect(info[0], self, info[1])
+
+#func _AddHexMapEntities() -> void:
+#	if map_data != null:
+#		var cam = _GetActiveCamera()
+#		var cell : HexCell = HexCell.new()
+#		cell.from_point(Vector2(
+#			cam.transform.origin.x,
+#			cam.transform.origin.z
+#		))
+#		var region = 
+
+func _DisconnectHexMapData() -> void:
+	if map_data != null:
+		for info in _SIGNALS_HEXMAPDATA:
+			if map_data.is_connected(info[0], self, info[1]):
+				map_data.disconnect(info[0], self, info[1])
+
+func _ClearAllEntityNodes() -> void:
+	var enodes : Array = get_tree().get_nodes_in_group(_GROUP_ENTITY)
+	for node in enodes:
+		remove_child(node)
+		node.queue_free()
+
+
 
 # -------------------------------------------------------------------------
 # Public Methods

@@ -39,11 +39,13 @@ func _draw() -> void:
 	if map_data == null:
 		return
 	
-	var origin : HexCell = HexCell.new()
-	var cells : Array = origin.get_region(5)
-	for cell in cells:
-		if not cell.eq(_mouse_cell):
-			_DrawHex(cell, map_data.cell_size, map_data.color_normal)
+	var rids : Array = HexMap.get_region_ids()
+	for rid in rids:
+		var region : Array = HexMap.get_region(rid)
+		for cell in region:
+			if not cell.eq(_mouse_cell):
+				_DrawHex(cell, map_data.cell_size, map_data.color_normal)
+	
 	if Game.view_mode == Game.VIEW.MODE_2D and _mouse_cell != null:
 		_DrawHex(_mouse_cell, map_data.cell_size, map_data.color_highlight)
 

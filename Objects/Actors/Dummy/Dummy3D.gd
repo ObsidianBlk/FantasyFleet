@@ -13,14 +13,14 @@ const _ENTITY_SIGNALS = [
 # -----------------------------------------------------------------------------
 # Exports
 # -----------------------------------------------------------------------------
-var entity : Entity = null
+export var entity : Resource = null
 
 
 # -----------------------------------------------------------------------------
 # Setters/Getters
 # -----------------------------------------------------------------------------
-func set_entity(e : Entity) -> void:
-	if e != entity:
+func set_entity(e : Resource) -> void:
+	if (e == null or e is Entity) and e != entity:
 		_DisconnectEntity()
 		entity = e
 		_ReadyEntity()

@@ -241,6 +241,15 @@ func get_region(rng : int) -> Array:
 			res.append(get_script().new(Vector3(q + c.x, s + c.y, r + c.z)))
 	return res
 
+func get_ring(rng : int) -> Array:
+	var res : Array = []
+	var cell = get_neighbor(4, rng)
+	for i in range(0, 6):
+		for _j in range(rng):
+			res.append(cell)
+			cell = cell.get_neighbor(i)
+	return res
+
 func get_line_to_cell(cell : HexCell) -> Array:
 	var res : Array = []
 	if cell.is_valid():

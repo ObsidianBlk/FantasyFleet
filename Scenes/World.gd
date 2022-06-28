@@ -43,6 +43,9 @@ func _KickPig() -> void:
 	hmd.cell_size = 60.0
 	HexMap.hex_map_data = hmd
 	
+	var origin : HexCell = HexCell.new()
+	HexMap.add_area_region(origin.get_neighbor(2, 10), 8)
+	HexMap.add_ring_region(origin.get_neighbor(4, 20), 12)
 #	var pl = ProjectSettings.get_property_list()
 #	for p in pl:
 #		if p.name.begins_with("input/"):

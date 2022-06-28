@@ -82,6 +82,7 @@ mouse_filter = 2
 script = ExtResource( 8 )
 
 [node name="Options" parent="Canvas" instance=ExtResource( 9 )]
+visible = false
 
 [connection signal="ui_requested" from="." to="Canvas/Options" method="_on_ui_requested"]
 [connection signal="ui_toggle_requested" from="." to="Canvas/Options" method="_on_ui_toggle_requested"]
