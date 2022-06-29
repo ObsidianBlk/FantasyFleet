@@ -24,13 +24,15 @@ func _ready() -> void:
 
 func _unhandled_input(event) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		print("Cancel call")
 		if get_tree().paused:
 			get_tree().paused = false
 			emit_signal("ui_requested", "")
 		else:
 			Game.save_config()
 			get_tree().quit()
+	elif event.is_action_pressed("network_toggle"):
+		get_tree().paused = not get_tree().paused
+		emit_signal("ui_toggle_requested", "Network")
 	elif event.is_action_pressed("option_toggle"):
 		get_tree().paused = not get_tree().paused # TODO: Figure out a better way to pause
 		emit_signal("ui_toggle_requested", "Options")
@@ -46,6 +48,8 @@ func _KickPig() -> void:
 	var origin : HexCell = HexCell.new()
 	HexMap.add_area_region(origin.get_neighbor(2, 10), 8)
 	HexMap.add_ring_region(origin.get_neighbor(4, 20), 12)
+	
+	$Nexus.click_me()
 #	var pl = ProjectSettings.get_property_list()
 #	for p in pl:
 #		if p.name.begins_with("input/"):
@@ -60,3 +64,16 @@ func _on_GameScreen_resized():
 		_view2d_node.size = OS.window_size
 	if _view3d_node:
 		_view3d_node.size = OS.window_size
+
+
+func _on_Network_host_requested(port : int, max_players : int):
+	get_tree().paused = false
+	$Nexus.host_game(max_players, port)
+
+func _on_Network_join_requested(address : String, port : int):
+	get_tree().paused = false
+	$Nexus.join_game(address, port)
+
+func _on_Network_disconnect_network_requested():
+	get_tree().paused = false
+	get_tree().network_peer = null

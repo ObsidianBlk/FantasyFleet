@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Shaders/GameScreen.gdshader" type="Shader" id=1]
 [ext_resource path="res://Scenes/World.gd" type="Script" id=2]
@@ -9,6 +9,8 @@
 [ext_resource path="res://Objects/OrbitCamera/OrbitCamera.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Scripts/Controllers/GameScreen.gd" type="Script" id=8]
 [ext_resource path="res://UI/Options/Options.tscn" type="PackedScene" id=9]
+[ext_resource path="res://Scripts/Nexus.gd" type="Script" id=10]
+[ext_resource path="res://UI/Networking/Network.tscn" type="PackedScene" id=11]
 
 [sub_resource type="ViewportTexture" id=2]
 viewport_path = NodePath("Viewport2D")
@@ -29,6 +31,10 @@ shader_param/view2d = SubResource( 2 )
 [node name="World" type="Node2D"]
 pause_mode = 2
 script = ExtResource( 2 )
+
+[node name="Nexus" type="Node" parent="."]
+pause_mode = 2
+script = ExtResource( 10 )
 
 [node name="CameraCTRL" type="Node" parent="."]
 pause_mode = 1
@@ -84,6 +90,14 @@ script = ExtResource( 8 )
 [node name="Options" parent="Canvas" instance=ExtResource( 9 )]
 visible = false
 
+[node name="Network" parent="Canvas" instance=ExtResource( 11 )]
+visible = false
+
 [connection signal="ui_requested" from="." to="Canvas/Options" method="_on_ui_requested"]
+[connection signal="ui_requested" from="." to="Canvas/Network" method="_on_ui_requested"]
 [connection signal="ui_toggle_requested" from="." to="Canvas/Options" method="_on_ui_toggle_requested"]
+[connection signal="ui_toggle_requested" from="." to="Canvas/Network" method="_on_ui_toggle_requested"]
 [connection signal="resized" from="Canvas/GameScreen" to="." method="_on_GameScreen_resized"]
+[connection signal="disconnect_network_requested" from="Canvas/Network" to="." method="_on_Network_disconnect_network_requested"]
+[connection signal="host_requested" from="Canvas/Network" to="." method="_on_Network_host_requested"]
+[connection signal="join_requested" from="Canvas/Network" to="." method="_on_Network_join_requested"]
