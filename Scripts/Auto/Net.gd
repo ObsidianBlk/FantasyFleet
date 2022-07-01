@@ -38,8 +38,8 @@ const NET_SIGNALS : Array = [
 # -----------------------------------------------------------------------------
 # Variables
 # -----------------------------------------------------------------------------
+var _id : int = 0
 var _pid : Dictionary = {}
-var _id : int = -1
 
 # -----------------------------------------------------------------------------
 # Override Methods
@@ -99,17 +99,29 @@ func host_game(max_players : int = 2, port : int = -1) -> int:
 	
 	return res
 
+
+func disconnect_game() -> int:
+	var st : SceneTree = get_tree()
+	if not st.has_network_peer():
+		return ERR_DOES_NOT_EXIST
+	
+	
+	return OK
+
 # -----------------------------------------------------------------------------
 # Remote Methods
 # -----------------------------------------------------------------------------
-remote func click_me() -> void:
-	print("I've been clicked")
+remote func r_get_info() -> Dictionary:
+	
+	return {}
 
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
 func _on_network_peer_connected(id : int) -> void:
-	print("New Peer: ", id)
+	if id in _pid:
+		printerr("WARNING: Client ID ", id, " already exists.")
+	_pid[id] = {"name":"Unknown"} # This is temporary!
 
 func _on_network_peer_disconnected(id : int) -> void:
 	print("Lost Peer: ", id)

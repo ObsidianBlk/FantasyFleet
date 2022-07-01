@@ -49,7 +49,6 @@ func _KickPig() -> void:
 	HexMap.add_area_region(origin.get_neighbor(2, 10), 8)
 	HexMap.add_ring_region(origin.get_neighbor(4, 20), 12)
 	
-	$Nexus.click_me()
 #	var pl = ProjectSettings.get_property_list()
 #	for p in pl:
 #		if p.name.begins_with("input/"):
@@ -68,11 +67,11 @@ func _on_GameScreen_resized():
 
 func _on_Network_host_requested(port : int, max_players : int):
 	get_tree().paused = false
-	$Nexus.host_game(max_players, port)
+	Net.host_game(max_players, port)
 
 func _on_Network_join_requested(address : String, port : int):
 	get_tree().paused = false
-	$Nexus.join_game(address, port)
+	Net.join_game(address, port)
 
 func _on_Network_disconnect_network_requested():
 	get_tree().paused = false
