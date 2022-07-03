@@ -20,6 +20,11 @@ onready var _view2d_node : Viewport = $Viewport2D
 # -------------------------------------------------------------------------
 func _ready() -> void:
 	_on_GameScreen_resized()
+	
+	Game.connect("game_config_loaded", EIM, "load_from_config")
+	Game.connect("game_config_saving", EIM, "save_to_config")
+	
+	Game.config_load()
 	call_deferred("_KickPig")
 
 func _unhandled_input(event) -> void:

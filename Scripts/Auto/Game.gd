@@ -5,12 +5,18 @@ extends Node
 # -------------------------------------------------------------------------
 signal input_bounced(event)
 signal view_mode_changed(mode)
+signal game_config_loading()
+signal game_config_loaded(conf)
+signal game_config_load_failed(err, config_path)
+signal game_config_saving(conf)
+signal game_config_saved()
+signal game_config_save_failed(err, config_path)
 
 
 # -------------------------------------------------------------------------
 # Constants and ENUMs
 # -------------------------------------------------------------------------
-const CONFIG_PATH : String = "user://FantasyFleet.cfg"
+const DEFAULT_CONFIG_PATH : String = "user://FantasyFleet.cfg"
 
 enum VIEW {MODE_2D=0, MODE_3D=1}
 
@@ -23,6 +29,8 @@ export (VIEW) var view_mode : int = VIEW.MODE_2D		setget set_view_mode
 # Variables
 # -------------------------------------------------------------------------
 var _game_config : ConfigFile = null
+var _game_config_path : String = ""
+
 var _profiles : Array = []
 var _spid : int = -1 # selected profile id. -1 = no profile selected
 
@@ -43,9 +51,7 @@ func set_view_mode(vm : int) -> void:
 # Override Methods
 # -------------------------------------------------------------------------
 func _ready() -> void:
-	_game_config = ConfigFile.new()
-	if _game_config.load(CONFIG_PATH) == OK:
-		EIM.load_from_config(_game_config)
+	pass
 
 # -------------------------------------------------------------------------
 # Private Methods
@@ -99,9 +105,29 @@ func get_profile_list() -> Array:
 		parr.append(_profiles[pid].name)
 	return parr
 
-func save_config() -> int:
-	EIM.save_to_config(_game_config)
-	return _game_config.save(CONFIG_PATH)
+func config_load(config_path : String = DEFAULT_CONFIG_PATH) -> int:
+	emit_signal("game_config_loading")
+	var conf : ConfigFile = ConfigFile.new()
+	var err : int = conf.load(config_path)
+	if err != OK:
+		emit_signal("game_config_load_failed", err, config_path)
+	else:
+		_game_config_path = config_path
+		_game_config = conf
+		emit_signal("game_config_loaded", _game_config)
+	return err
+
+func config_save() -> int:
+	if _game_config == null:
+		_game_config = ConfigFile.new()
+		_game_config_path = DEFAULT_CONFIG_PATH
+	emit_signal("game_config_saving", _game_config)
+	var err : int = _game_config.save(_game_config_path)
+	if err != OK:
+		emit_signal("game_config_save_failed", err, _game_config_path)
+	else:
+		emit_signal("game_config_saved")
+	return err
 
 # -------------------------------------------------------------------------
 # Handler Methods
