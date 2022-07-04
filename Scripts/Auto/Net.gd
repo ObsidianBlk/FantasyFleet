@@ -1,5 +1,14 @@
 extends Node
 
+
+# -----------------------------------------------------------------------------
+# Signals
+# -----------------------------------------------------------------------------
+signal network_initialized()
+signal network_disconnected()
+signal network_init_failed()
+
+
 # -----------------------------------------------------------------------------
 # Constant
 # -----------------------------------------------------------------------------
@@ -66,6 +75,7 @@ func join_game(address : String, port : int = -1) -> int:
 	var st : SceneTree = get_tree()
 	if st.has_network_peer():
 		printerr("Network already connected.")
+		emit_signal("network_init_failed", ERR_ALREADY_IN_USE)
 		return ERR_ALREADY_IN_USE
 	
 	if port < MIN_PORT:
@@ -76,6 +86,9 @@ func join_game(address : String, port : int = -1) -> int:
 	if res == OK:
 		st.network_peer = peer
 		_PostNetworkInit(NET_SIG_MODE.Client)
+		emit_signal("network_initialized")
+	else:
+		emit_signal("network_init_failed", res)
 	
 	return res
 
@@ -84,6 +97,7 @@ func host_game(max_players : int = 2, port : int = -1) -> int:
 	var st : SceneTree = get_tree()
 	if st.has_network_peer():
 		printerr("Network already connected.")
+		emit_signal("network_init_failed", ERR_ALREADY_IN_USE)
 		return ERR_ALREADY_IN_USE
 	
 	if port < MIN_PORT:
@@ -96,42 +110,64 @@ func host_game(max_players : int = 2, port : int = -1) -> int:
 	if res == OK:
 		st.network_peer = peer
 		_PostNetworkInit(NET_SIG_MODE.Server)
-	
+		emit_signal("network_initialized")
+	else:
+		emit_signal("network_init_failed", res)
 	return res
 
 
-func disconnect_game() -> int:
+func disconnect_game(unregister : bool = true) -> int:
 	var st : SceneTree = get_tree()
 	if not st.has_network_peer():
 		return ERR_DOES_NOT_EXIST
-	
-	
+	if unregister:
+		rpc("r_unregister_player_profile")
+	st.network_peer = null
+	emit_signal("network_disconnected")
 	return OK
 
 # -----------------------------------------------------------------------------
 # Remote Methods
 # -----------------------------------------------------------------------------
-remote func r_get_info() -> Dictionary:
-	
-	return {}
+remote func r_register_player_profile(profile : Dictionary) -> void:
+	var id : int = get_tree().get_rpc_sender_id()
+	# TODO: Varify dictionary data
+	_pid[id] = profile
+	print("Registered client: ", id, " - ", profile)
+
+remote func r_unregister_player_profile() -> void:
+	var id : int = get_tree().get_rpc_sender_id()
+	print(_pid)
+	if id in _pid:
+		_pid.erase(id)
+		print("Unregistered client: ", id)
 
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
-func _on_network_peer_connected(id : int) -> void:
+remote func _on_network_peer_connected(id : int) -> void:
 	if id in _pid:
 		printerr("WARNING: Client ID ", id, " already exists.")
-	_pid[id] = {"name":"Unknown"} # This is temporary!
+	#_pid[id] = {"name":"Unknown"} # This is temporary!
 
 func _on_network_peer_disconnected(id : int) -> void:
-	print("Lost Peer: ", id)
+	if id != get_tree().get_network_unique_id():
+		if id in _pid:
+			_pid.erase(id)
+		print("Client disconnected: ", id)
 
 func _on_connected_to_server() -> void:
-	print("I connected to the server!")
+	var id : int = get_tree().get_network_unique_id()
+	if id != 1:
+		rpc("r_register_player_profile", Game.get_profile())
+	else:
+		_pid[id] = Game.get_profile()
 
 func _on_connection_failed() -> void:
 	print("Failed to connect to the server")
+	disconnect_game(false)
 
 func _on_server_disconnected() -> void:
-	print("Server abandoned me!")
+	print("Server disconnected")
+	disconnect_game(false)
 

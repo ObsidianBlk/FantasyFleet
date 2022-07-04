@@ -25,6 +25,9 @@ func _ready() -> void:
 	Game.connect("game_config_saving", EIM, "save_to_config")
 	
 	Game.config_load()
+	var prof_name : String = Utils.uuidv4()
+	Game.create_profile(prof_name)
+	Game.select_profile(prof_name)
 	call_deferred("_KickPig")
 
 func _unhandled_input(event) -> void:
@@ -33,7 +36,7 @@ func _unhandled_input(event) -> void:
 			get_tree().paused = false
 			emit_signal("ui_requested", "")
 		else:
-			Game.save_config()
+			Game.config_save()
 			get_tree().quit()
 	elif event.is_action_pressed("network_toggle"):
 		get_tree().paused = not get_tree().paused
@@ -80,4 +83,4 @@ func _on_Network_join_requested(address : String, port : int):
 
 func _on_Network_disconnect_network_requested():
 	get_tree().paused = false
-	get_tree().network_peer = null
+	Net.disconnect_game()
