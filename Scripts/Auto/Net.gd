@@ -1,5 +1,6 @@
 extends Node
 
+# https://godotengine.org/qa/64801/sending-variable-data-from-server-to-a-client
 
 # -----------------------------------------------------------------------------
 # Signals
