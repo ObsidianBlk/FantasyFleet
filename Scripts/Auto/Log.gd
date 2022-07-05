@@ -9,18 +9,23 @@ signal log_changed()
 # -----------------------------------------------------------------------------
 # Constants and ENUMs
 # -----------------------------------------------------------------------------
-enum PRIORITY {Info=0, Debug=1, Warning=2, Error=3}
+enum PRIORITY {Info=1, Debug=2, Warning=4, Error=8}
 
 # -----------------------------------------------------------------------------
 # Variables
 # -----------------------------------------------------------------------------
 var _entries : Array = []
 var _max_entries : int = 5000
+var _enabled_priority = 15
 
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
-
+func _PriorityNameFromCode(p : int) -> String:
+	for key in PRIORITY.keys():
+		if PRIORITY[key] == p:
+			return key
+	return ""
 
 # -----------------------------------------------------------------------------
 # Public Methods
@@ -48,7 +53,10 @@ func get_entry(idx : int) -> Dictionary:
 			re[key] = entry[key]
 	return re
 
-func get_entries(start : int, count : int) -> Array:
+func get_entries(start : int = 0, count : int = -1) -> Array:
+	if count < 0:
+		count = _entries.size()
+	
 	var ent : Array = []
 	var size : int = _entries.size()
 	if start >= 0 and start < size:
@@ -61,10 +69,13 @@ func get_entries(start : int, count : int) -> Array:
 func entry(priority : int, message : String, metadata = null) -> void:
 	if PRIORITY.values().find(priority) < 0:
 		return
+	if (priority & _enabled_priority) <= 0:
+		return
 	
 	var e : Dictionary = {
 		"timestamp": OS.get_unix_time(),
 		"priority": priority,
+		"priority_name": _PriorityNameFromCode(priority),
 		"message": message,
 		"meta": metadata
 	}
@@ -73,6 +84,18 @@ func entry(priority : int, message : String, metadata = null) -> void:
 		_entries.pop_front()
 	emit_signal("entry_logged", e)
 	emit_signal("log_changed")
+
+func info(message : String, metadata = null) -> void:
+	entry(PRIORITY.Info, message, metadata)
+
+func debug(message : String, metadata = null) -> void:
+	entry(PRIORITY.Debug, message, metadata)
+
+func warning(message : String, metadata = null) -> void:
+	entry(PRIORITY.Warning, message, metadata)
+
+func error(message : String, metadata = null) -> void:
+	entry(PRIORITY.Error, message, metadata)
 
 func remove(idx : int) -> void:
 	if idx >= 0 and idx < _entries.size():

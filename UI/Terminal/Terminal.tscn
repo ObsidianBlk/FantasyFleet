@@ -7,11 +7,13 @@ anchor_right = 1.0
 margin_bottom = 14.0
 script = ExtResource( 1 )
 
-[node name="TextEdit" type="TextEdit" parent="."]
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
 margin_left = 7.0
 margin_top = 7.0
 margin_right = 1913.0
 margin_bottom = 7.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-readonly = true
+bbcode_enabled = true
+
+[node name="Tween" type="Tween" parent="."]

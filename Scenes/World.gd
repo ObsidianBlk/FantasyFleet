@@ -44,6 +44,8 @@ func _unhandled_input(event) -> void:
 	elif event.is_action_pressed("option_toggle"):
 		get_tree().paused = not get_tree().paused # TODO: Figure out a better way to pause
 		emit_signal("ui_toggle_requested", "Options")
+	elif event.is_action_pressed("term_toggle"):
+		emit_signal("ui_toggle_requested", "Terminal")
 
 # -------------------------------------------------------------------------
 # Private Methods
@@ -75,11 +77,17 @@ func _on_GameScreen_resized():
 
 func _on_Network_host_requested(port : int, max_players : int):
 	get_tree().paused = false
-	Net.host_game(max_players, port)
+	if Net.host_game(max_players, port) == OK:
+		Log.info("Network server started successfully")
+	else:
+		Log.warning("Failed to start network server.")
 
 func _on_Network_join_requested(address : String, port : int):
 	get_tree().paused = false
-	Net.join_game(address, port)
+	if Net.join_game(address, port) == OK:
+		Log.info("Attempted to join server %s:%d ... "%[address, port])
+	else:
+		Log.warning("Failed start network service to %s:%d"%[address, port])
 
 func _on_Network_disconnect_network_requested():
 	get_tree().paused = false
