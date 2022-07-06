@@ -85,11 +85,17 @@ margin_right = 400.0
 margin_bottom = 24.0
 text = "Connect"
 
+[node name="Cancel" type="Button" parent="VBC/JoinMode"]
+margin_left = 424.0
+margin_right = 478.0
+margin_bottom = 24.0
+text = "Cancel"
+
 [node name="HostMode" type="HBoxContainer" parent="VBC"]
 visible = false
-margin_top = 24.0
+margin_top = 52.0
 margin_right = 1896.0
-margin_bottom = 48.0
+margin_bottom = 76.0
 custom_constants/separation = 24
 
 [node name="Port" type="HBoxContainer" parent="VBC/HostMode"]
@@ -129,8 +135,16 @@ margin_right = 332.0
 margin_bottom = 24.0
 text = "Host"
 
+[node name="Cancel" type="Button" parent="VBC/HostMode"]
+margin_left = 356.0
+margin_right = 410.0
+margin_bottom = 24.0
+text = "Cancel"
+
 [connection signal="pressed" from="VBC/NetworkMode/Host" to="." method="_on_Host_pressed"]
 [connection signal="pressed" from="VBC/NetworkMode/Join" to="." method="_on_Join_pressed"]
 [connection signal="pressed" from="VBC/NetworkMode/Disconnect" to="." method="_on_Disconnect_pressed"]
 [connection signal="pressed" from="VBC/JoinMode/Connect" to="." method="_on_Connect_pressed"]
+[connection signal="pressed" from="VBC/JoinMode/Cancel" to="." method="_on_JoinCancel_pressed"]
 [connection signal="pressed" from="VBC/HostMode/Host" to="." method="_on_Hosting_pressed"]
+[connection signal="pressed" from="VBC/HostMode/Cancel" to="." method="_on_HostCancel_pressed"]

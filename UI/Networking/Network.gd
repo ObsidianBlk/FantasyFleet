@@ -27,6 +27,8 @@ onready var host_players_node : LineEdit = $VBC/HostMode/MaxPlayers/LineEdit
 # Override Methods
 # -------------------------------------------------------------------------
 func _ready() -> void:
+	$VBC/HostMode.visible = false
+	$VBC/JoinMode.visible = false
 	visible = visible_at_start
 	if visible:
 		_UpdateNetworkModeButtons()
@@ -95,3 +97,13 @@ func _on_Hosting_pressed():
 	$VBC/HostMode.visible = false
 	visible = false
 	emit_signal("host_requested", host_port_node.text.to_int(), host_players_node.text.to_int())
+
+
+func _on_JoinCancel_pressed():
+	$VBC/JoinMode.visible = false
+	$VBC/NetworkMode.visible = true
+
+
+func _on_HostCancel_pressed():
+	$VBC/HostMode.visible = false
+	$VBC/NetworkMode.visible = true

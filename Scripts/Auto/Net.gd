@@ -109,7 +109,7 @@ func host_game(max_players : int = 2, port : int = -1) -> int:
 		max_players = 2
 	
 	var peer : NetworkedMultiplayerENet = NetworkedMultiplayerENet.new()
-	var res : int = peer.create_server(port, max_players)
+	var res : int = peer.create_server(port, max_players - 1)
 	if res == OK:
 		st.network_peer = peer
 		_PostNetworkInit(NET_SIG_MODE.Server)
@@ -129,6 +129,16 @@ func disconnect_game(unregister : bool = true) -> int:
 	emit_signal("network_disconnected")
 	return OK
 
+func send_data(data, to_id : int = -1) -> void:
+	var self_id : int = get_tree().get_network_unique_id()
+	if self_id == 1:
+		if to_id > 1:
+			rpc_id(to_id, "r_receive_data", data)
+		else:
+			rpc("r_receive_data", data)
+	else:
+		rpc_id(1, "r_receive_data", data, to_id)
+
 # -----------------------------------------------------------------------------
 # Remote Methods
 # -----------------------------------------------------------------------------
@@ -147,14 +157,26 @@ remote func r_unregister_player_profile() -> void:
 		Log.info("Unregistered client: %d"%[id])
 		#print("Unregistered client: ", id)
 
+remote func r_receive_data(data, to_id : int = -1) -> void:
+	var id : int = get_tree().get_rpc_sender_id()
+	if id == 1 and to_id > 1:
+		rpc_id(to_id, "r_receive_data", data)
+	else:
+		Log.debug("Obtained data from %d"%[id])
+		# TODO: Process data for command
+
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
-remote func _on_network_peer_connected(id : int) -> void:
+func _on_network_peer_connected(id : int) -> void:
 	if id in _pid:
 		Log.warning("Client ID %d already exists."%[id])
 		#printerr("WARNING: Client ID ", id, " already exists.")
 	Log.info("New client connected, %d"%[id])
+	var sid : int = get_tree().get_network_unique_id()
+	if sid == 1:
+		Log.debug("Sending data to client %d"%[id])
+		send_data("Hello from server", id)
 	#_pid[id] = {"name":"Unknown"} # This is temporary!
 
 func _on_network_peer_disconnected(id : int) -> void:
