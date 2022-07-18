@@ -9,7 +9,8 @@ extends Node
 # -------------------------------------------------------------------------
 signal initialized(project_name)
 signal deconstructed()
-signal active_joypad_changed(device, device_name)
+signal active_joypad_changed(device_id, device_name)
+signal action_input_changed(action_name, new_input, old_input)
 signal inputmap_changed()
 
 # -------------------------------------------------------------------------
@@ -99,7 +100,7 @@ func _AreEventsUnique(ae1, ae2) -> int:
 		return OK
 	return ERR_INVALID_DATA
 
-func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String, action_class : String = "") -> bool:
+func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String, input_class : String = "") -> bool:
 	var a1key : String = "%s%s"%[SUBPROP_INPUT, action_name1]
 	var a2key : String = "%s%s"%[SUBPROP_INPUT, action_name2]
 	if ProjectSettings.has_setting(a1key) and ProjectSettings.has_setting(a2key):
@@ -109,9 +110,9 @@ func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String, a
 			return false
 		
 		for ae1 in action1.events:
-			if action_class == "" or ae1.get_classs() == action_class:
+			if input_class == "" or ae1.get_classs() == input_class:
 				for ae2 in action2.events:
-					if action_class == "" or ae2.get_class() == action_class:
+					if input_class == "" or ae2.get_class() == input_class:
 						var res : int = _AreEventsUnique(ae1, ae2)
 						if res == FAILED:
 							return false
@@ -119,12 +120,12 @@ func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String, a
 	return false
 
 
-func _AreActionsUnique(action_name1 : String, action_name2 : String, action_class : String = "") -> bool:
+func _AreActionsUnique(action_name1 : String, action_name2 : String, input_class : String = "") -> bool:
 	if InputMap.has_action(action_name1) and InputMap.has_action(action_name2):
 		for ae1 in InputMap.get_action_list(action_name1):
-			if action_class == "" or ae1.get_class() == action_class:
+			if input_class == "" or ae1.get_class() == input_class:
 				for ae2 in InputMap.get_action_list(action_name2):
-					if action_class == "" or ae2.get_class() == action_class:
+					if input_class == "" or ae2.get_class() == input_class:
 						var res : int = _AreEventsUnique(ae1, ae2)
 						if res == FAILED:
 							return false
@@ -238,12 +239,14 @@ func load_from_config(conf : ConfigFile) -> void:
 					var event : InputEventKey = InputEventKey.new()
 					event.scancode = scancode
 					InputMap.action_add_event(action_data.name, event)
+					emit_signal("action_input_changed", action_data.name, event, null)
 			if conf.has_section_key(section, "%s.mouse_button"%[key_base]):
 				var id : int = conf.get_value(section, "%s.mouse_button"%[key_base], -1)
 				if id >= 0:
 					var event : InputEventMouseButton = InputEventMouseButton.new()
 					event.button_index = id
 					InputMap.action_add_event(action_data.name, event)
+					emit_signal("action_input_changed", action_data.name, event, null)
 			if conf.has_section_key(section, "%s.joy_axis"%[key_base]) and conf.has_section_key(section, "%s.joy_axis_value"%[key_base]):
 				var id : int = conf.get_value(section, "%s.joy_axis"%[key_base], -1)
 				var value : float = conf.get_value(section, "%s.joy_axis_value"%[key_base], 0)
@@ -252,12 +255,14 @@ func load_from_config(conf : ConfigFile) -> void:
 					event.axis = id
 					event.axis_value = value
 					InputMap.action_add_event(action_data.name, event)
+					emit_signal("action_input_changed", action_data.name, event, null)
 			if conf.has_section_key(section, "%s.joy_button"%[key_base]):
 				var id : int = conf.get_value(section, "%s.joy_button"%[key_base], -1)
 				if id >= 0:
 					var event : InputEventJoypadButton = InputEventJoypadButton.new()
 					event.button_index = id
 					InputMap.action_add_event(action_data.name, event)
+					emit_signal("action_input_changed", action_data.name, event, null)
 	emit_signal("inputmap_changed")
 
 
@@ -490,21 +495,21 @@ func is_action_in_group(group_name : String, action_name : String) -> bool:
 		return _FindDataAction(data, action_name) >= 0
 	return false
 
-func is_group_actions_unique(group_name : String, action_class : String = "") -> bool:
+func is_group_actions_unique(group_name : String, input_class : String = "") -> bool:
 	var alist = get_group_action_list(group_name)
 	if alist.size() > 0:
 		for a1idx in range(alist.size() - 1):
 			for a2idx in range(a1idx + 1, alist.size()):
 				if Engine.editor_hint:
-					if not _AreActionsUniqueEditorMode(alist[a1idx].name, alist[a2idx].name, action_class):
+					if not _AreActionsUniqueEditorMode(alist[a1idx].name, alist[a2idx].name, input_class):
 						return false
 				else:
-					if not _AreActionsUnique(alist[a1idx].name, alist[a2idx].name, action_class):
+					if not _AreActionsUnique(alist[a1idx].name, alist[a2idx].name, input_class):
 						return false
 	return true
 
 
-func is_group_action_inputs_unique(group_name : String, action_name : String, action_class : String = "") -> bool:
+func is_group_action_inputs_unique(group_name : String, action_name : String, input_class : String = "") -> bool:
 	if not is_action_in_group(group_name, action_name):
 		return false
 	var alist = get_group_action_list(group_name)
@@ -512,10 +517,10 @@ func is_group_action_inputs_unique(group_name : String, action_name : String, ac
 		for adata in alist:
 			if adata.name != action_name:
 				if Engine.editor_hint:
-					if not _AreActionsUniqueEditorMode(action_name, adata.name, action_class):
+					if not _AreActionsUniqueEditorMode(action_name, adata.name, input_class):
 						return false
 				else:
-					if not _AreActionsUnique(action_name, adata.name, action_class):
+					if not _AreActionsUnique(action_name, adata.name, input_class):
 						return false
 	return true
 
@@ -525,6 +530,7 @@ func add_group_action_input(group_name : String, action_name : String, input : I
 		return
 	if not action_has_input(action_name, input):
 		InputMap.action_add_event(action_name, input)
+		emit_signal("action_input_changed", action_name, input, null)
 
 func replace_group_action_input(group_name : String, action_name : String, old_input : InputEvent, new_input : InputEvent) -> void:
 	if not is_action_in_group(group_name, action_name):
@@ -537,7 +543,8 @@ func replace_group_action_input(group_name : String, action_name : String, old_i
 	
 	if not InputMap.has_action(action_name):
 		return
-	
+
+	var inputmap_changed : bool = false	
 	for event in InputMap.get_action_list(action_name):
 		var event_class : String = event.get_class()
 		if event.get_class() == old_input.get_class():
@@ -549,16 +556,26 @@ func replace_group_action_input(group_name : String, action_name : String, old_i
 					if e_scancode == old_scancode:
 						event.scancode = new_input.scancode
 						event.physical_scancode = new_input.physical_scancode
+						emit_signal("action_input_changed", action_name, event, old_input)
+						inputmap_changed = true
 				"InputEventMouseButton":
 					if event.button_index == old_input.button_index:
 						event.button_index = new_input.button_index
+						emit_signal("action_input_changed", action_name, event, old_input)
+						inputmap_changed = true
 				"InputEventJoypadMotion":
 					if event.axis == old_input.axis and event.axis_value == old_input.axis_value:
 						event.axis = new_input.axis
 						event.axis_value = new_input.axis_value
+						emit_signal("action_input_changed", action_name, event, old_input)
+						inputmap_changed = true
 				"InputEventJoypadButton":
 					if event.button_index == old_input.button_index:
 						event.button_index = new_input.button_index
+						emit_signal("action_input_changed", action_name, event, old_input)
+						inputmap_changed = true
+	if inputmap_changed:
+		emit_signal("inputmap_changed")
 
 func has_action(action_name : String) -> bool:
 	if Engine.editor_hint:
@@ -574,7 +591,8 @@ func action_has_input(action_name : String, input : InputEvent) -> bool:
 		return false
 	
 	var input_class : String = input.get_class()
-	for event in InputMap.get_action_list(action_name):
+	#for event in InputMap.get_action_list(action_name):
+	for event in _GetActionEvents(action_name):
 		if event.get_class() == input_class:
 			match input_class:
 				"InputEventKey":
@@ -677,5 +695,5 @@ func _on_joy_connection_changed(device_id : int, connected : bool) -> void:
 	if connected:
 		var joy_name : String = Input.get_joy_name(device_id)
 		if joy_name == _favored_joypad_name:
-			set_active_joypad_id(device_id) 
+			set_active_joypad_id(device_id)
 
