@@ -99,7 +99,7 @@ func _AreEventsUnique(ae1, ae2) -> int:
 		return OK
 	return ERR_INVALID_DATA
 
-func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String) -> bool:
+func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String, action_class : String = "") -> bool:
 	var a1key : String = "%s%s"%[SUBPROP_INPUT, action_name1]
 	var a2key : String = "%s%s"%[SUBPROP_INPUT, action_name2]
 	if ProjectSettings.has_setting(a1key) and ProjectSettings.has_setting(a2key):
@@ -109,21 +109,25 @@ func _AreActionsUniqueEditorMode(action_name1 : String, action_name2 : String) -
 			return false
 		
 		for ae1 in action1.events:
-			for ae2 in action2.events:
-				var res : int = _AreEventsUnique(ae1, ae2)
-				if res == FAILED:
-					return false
+			if action_class == "" or ae1.get_classs() == action_class:
+				for ae2 in action2.events:
+					if action_class == "" or ae2.get_class() == action_class:
+						var res : int = _AreEventsUnique(ae1, ae2)
+						if res == FAILED:
+							return false
 		return true
 	return false
 
 
-func _AreActionsUnique(action_name1 : String, action_name2 : String) -> bool:
+func _AreActionsUnique(action_name1 : String, action_name2 : String, action_class : String = "") -> bool:
 	if InputMap.has_action(action_name1) and InputMap.has_action(action_name2):
 		for ae1 in InputMap.get_action_list(action_name1):
-			for ae2 in InputMap.get_action_list(action_name2):
-				var res : int = _AreEventsUnique(ae1, ae2)
-				if res == FAILED:
-					return false
+			if action_class == "" or ae1.get_class() == action_class:
+				for ae2 in InputMap.get_action_list(action_name2):
+					if action_class == "" or ae2.get_class() == action_class:
+						var res : int = _AreEventsUnique(ae1, ae2)
+						if res == FAILED:
+							return false
 		return true
 	return false
 
@@ -486,17 +490,21 @@ func is_action_in_group(group_name : String, action_name : String) -> bool:
 		return _FindDataAction(data, action_name) >= 0
 	return false
 
-func is_group_actions_unique(group_name : String) -> bool:
+func is_group_actions_unique(group_name : String, action_class : String = "") -> bool:
 	var alist = get_group_action_list(group_name)
 	if alist.size() > 0:
 		for a1idx in range(alist.size() - 1):
 			for a2idx in range(a1idx + 1, alist.size()):
-				if not _AreActionsUnique(alist[a1idx].name, alist[a2idx].name):
-					return false
+				if Engine.editor_hint:
+					if not _AreActionsUniqueEditorMode(alist[a1idx].name, alist[a2idx].name, action_class):
+						return false
+				else:
+					if not _AreActionsUnique(alist[a1idx].name, alist[a2idx].name, action_class):
+						return false
 	return true
 
 
-func is_group_action_inputs_unique(group_name : String, action_name : String) -> bool:
+func is_group_action_inputs_unique(group_name : String, action_name : String, action_class : String = "") -> bool:
 	if not is_action_in_group(group_name, action_name):
 		return false
 	var alist = get_group_action_list(group_name)
@@ -504,10 +512,10 @@ func is_group_action_inputs_unique(group_name : String, action_name : String) ->
 		for adata in alist:
 			if adata.name != action_name:
 				if Engine.editor_hint:
-					if not _AreActionsUniqueEditorMode(action_name, adata.name):
+					if not _AreActionsUniqueEditorMode(action_name, adata.name, action_class):
 						return false
 				else:
-					if not _AreActionsUnique(action_name, adata.name):
+					if not _AreActionsUnique(action_name, adata.name, action_class):
 						return false
 	return true
 
