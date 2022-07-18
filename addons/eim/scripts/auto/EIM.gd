@@ -1,12 +1,16 @@
 tool
 extends Node
 
+# TODO: Should have a signal for every input change whenever it occurs
+
+
 # -------------------------------------------------------------------------
 # Signals
 # -------------------------------------------------------------------------
 signal initialized(project_name)
 signal deconstructed()
 signal active_joypad_changed(device, device_name)
+signal inputmap_changed()
 
 # -------------------------------------------------------------------------
 # Constants
@@ -87,7 +91,7 @@ func _AreEventsUnique(ae1, ae2) -> int:
 				if ae1.button_index == ae2.button_index:
 					return FAILED
 			"InputEventJoypadMotion":
-				if ae1.axis == ae2.axis:
+				if ae1.axis == ae2.axis and ae1.axis_value == ae2.axis_value:
 					return FAILED
 			"InputEventJoypadButton":
 				if ae1.button_index == ae2.button_index:
@@ -236,11 +240,13 @@ func load_from_config(conf : ConfigFile) -> void:
 					var event : InputEventMouseButton = InputEventMouseButton.new()
 					event.button_index = id
 					InputMap.action_add_event(action_data.name, event)
-			if conf.has_section_key(section, "%s.joy_axis"%[key_base]):
+			if conf.has_section_key(section, "%s.joy_axis"%[key_base]) and conf.has_section_key(section, "%s.joy_axis_value"%[key_base]):
 				var id : int = conf.get_value(section, "%s.joy_axis"%[key_base], -1)
-				if id >= 0:
+				var value : float = conf.get_value(section, "%s.joy_axis_value"%[key_base], 0)
+				if id >= 0 and value != 0:
 					var event : InputEventJoypadMotion = InputEventJoypadMotion.new()
 					event.axis = id
+					event.axis_value = value
 					InputMap.action_add_event(action_data.name, event)
 			if conf.has_section_key(section, "%s.joy_button"%[key_base]):
 				var id : int = conf.get_value(section, "%s.joy_button"%[key_base], -1)
@@ -248,6 +254,7 @@ func load_from_config(conf : ConfigFile) -> void:
 					var event : InputEventJoypadButton = InputEventJoypadButton.new()
 					event.button_index = id
 					InputMap.action_add_event(action_data.name, event)
+	emit_signal("inputmap_changed")
 
 
 
@@ -272,8 +279,9 @@ func save_to_config(conf : ConfigFile) -> void:
 							conf.set_value(section, "%s.%s.scancode"%[group_name, action_data.name], scancode)
 						"InputEventMouseButton":
 							conf.set_value(section, "%s.%s.mouse_button"%[group_name, action_data.name], action.button_index)
-						"InputEventJoypadAxis":
+						"InputEventJoypadMotion":
 							conf.set_value(section, "%s.%s.joy_axis"%[group_name, action_data.name], action.axis)
+							conf.set_value(section, "%s.%s.joy_axis_value"%[group_name, action_data.name], action.axis_value)
 						"InputEventJoypadButton":
 							conf.set_value(section, "%s.%s.joy_button"%[group_name, action_data.name], action.button_index)
 
@@ -537,8 +545,9 @@ func replace_group_action_input(group_name : String, action_name : String, old_i
 					if event.button_index == old_input.button_index:
 						event.button_index = new_input.button_index
 				"InputEventJoypadMotion":
-					if event.axis == old_input.axis:
+					if event.axis == old_input.axis and event.axis_value == old_input.axis_value:
 						event.axis = new_input.axis
+						event.axis_value = new_input.axis_value
 				"InputEventJoypadButton":
 					if event.button_index == old_input.button_index:
 						event.button_index = new_input.button_index
@@ -569,7 +578,7 @@ func action_has_input(action_name : String, input : InputEvent) -> bool:
 					if event.button_index == input.button_index:
 						return true
 				"InputEventJoypadMotion":
-					if event.axis == input.axis:
+					if event.axis == input.axis and event.axis_value == input.axis_value:
 						return true
 				"InputEventJoypadButton":
 					if event.button_index == input.button_index:

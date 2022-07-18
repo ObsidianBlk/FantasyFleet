@@ -78,7 +78,7 @@ func _GetControlWithProperty(type : int, property : String) -> Control:
 		if not c:
 			continue
 		
-		if _ControlHasProperty(c, TYPE.Colors, property):
+		if _ControlHasProperty(c, type, property):
 			return c
 	return null
 
@@ -280,6 +280,7 @@ func add_font_override(property : String, value) -> void:
 			property = "custom_fonts/%s"%[property]
 			c.set(property, null)
 		else:
+			print("Setting override")
 			c.add_font_override(property, value)
 
 func get_font(property : String, theme_type : String = "") -> Font:

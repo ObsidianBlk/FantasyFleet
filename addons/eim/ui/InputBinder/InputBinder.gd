@@ -212,20 +212,9 @@ func _ready() -> void:
 	tree_node.connect("focus_entered", self, "_on_focus_entered")
 	tree_node.connect("focus_exited", self, "_on_focus_exited")
 
+	EIM.connect("inputmap_changed", self, "_on_inputmap_changed")
 	if _group_name != "" and _root == null:
 		_BuildList()
-#	var props = tree_node.get_property_list()
-#	var prev_prop = null
-#	for prop in props:
-#		if prop.name == "custom_colors/custom_button_font_highlight":
-#			for key in prop.keys():
-#				print(key, ": ", prop[key])
-#			print("---")
-#			if prev_prop:
-#				for key in prev_prop.keys():
-#					print(key, ": ", prev_prop[key])
-#				print("---")
-#		prev_prop = prop
 
 
 func _get(property : String):
@@ -627,6 +616,7 @@ func _BuildList(full_rebuild : bool = false) -> void:
 							item.set_text(column, info.text)
 						item.set_metadata(column, event)
 						if not EIM.is_group_action_inputs_unique(_group_name, ainfo.name):
+							# TODO: This doesn't necessarily highlight for the correct input type
 							item.set_custom_bg_color(column, Color(1,0,0), true)
 
 
@@ -829,6 +819,10 @@ func get_stylebox(property : String, theme_type : String = "") -> StyleBox:
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
+func _on_inputmap_changed() -> void:
+	_BuildList(true)
+
+
 func _on_input_captured(event, imd) -> void:
 	remove_child(imd)
 	imd.queue_free()
