@@ -56,8 +56,9 @@ func _KickPig() -> void:
 	HexMap.hex_map_data = hmd
 	
 	var origin : HexCell = HexCell.new()
-	HexMap.add_area_region(origin.get_neighbor(2, 10), 8)
+	HexMap.add_area_region(origin.get_neighbor(2, 10), 2)
 	HexMap.add_ring_region(origin.get_neighbor(4, 20), 12)
+	HexMap.add_line_region(origin, origin.get_neighbor(4, 12).get_neighbor(3, 8))
 	
 #	var pl = ProjectSettings.get_property_list()
 #	for p in pl:

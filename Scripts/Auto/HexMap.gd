@@ -70,6 +70,13 @@ func add_ring_region(origin : HexCell, radius) -> int:
 	_regions[id] = origin.get_ring(radius)
 	return id
 
+func add_line_region(from : HexCell, to : HexCell) -> int:
+	var id : int = _GetRandomRegionID()
+	if id < 0:
+		return -1
+	_regions[id] = from.get_line_to_cell(to)
+	return id
+
 func remove_region(id : int) -> void:
 	if id in _regions:
 		_regions.erase(id)

@@ -37,8 +37,7 @@ func _init(value = null, point_is_spacial : bool = false, orientation : int = -1
 		c = value.qrs
 	elif typeof(value) == TYPE_VECTOR3:
 		c = value
-		if not is_valid():
-			round_hex()
+		round_hex()
 	elif typeof(value) == TYPE_VECTOR2:
 		if point_is_spacial:
 			from_point(value)
@@ -235,8 +234,9 @@ func get_neighbor(dir : int, amount : int = 1) -> HexCell:
 
 func get_region(rng : int) -> Array:
 	var res : Array = []
-	for q in range(-rng, rng):
-		for r in range(max(-rng, -q-rng), min(rng, -q+rng)):
+	for q in range(-rng, rng+1):
+		for r in range(max(-rng, -q-rng), min(rng, -q+rng) + 1):
+			print("QR: ", q, ", ", r)
 			var s = -q-r
 			res.append(get_script().new(Vector3(q + c.x, s + c.y, r + c.z)))
 	return res
@@ -256,6 +256,7 @@ func get_line_to_cell(cell : HexCell) -> Array:
 		var dist = distance_to(cell)
 		for i in range(0, dist):
 			var ncell = _CellLerp(self, cell, i/dist)
+			print("Valid Cell: ", ncell.is_valid(), " | qrs: ", ncell.qrs)
 			res.append(ncell)
 	return res
 
