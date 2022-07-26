@@ -14,7 +14,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Scripts/Entity.gd"
 }, {
-"base": "Object",
+"base": "Reference",
 "class": "HexCell",
 "language": "GDScript",
 "path": "res://Scripts/HexCell.gd"
